@@ -1,0 +1,30 @@
+---
+name: nexus
+
+releases:
+- name: nexus
+  version: latest
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: nexus
+  instances: ((NEXUS_INSTANCES))
+  vm_type: ((NEXUS_VM_TYPE))
+  persistent_disk: 51200
+  stemcell: trusty
+  azs: [((NEXUS_AZ_NAME))]
+  networks: [{name: ((NEXUS_NW_NAME)), static_ips: ((STATIC_IP)), default: [dns, gateway]}]
+  jobs:
+  - name: nexus
+    release: nexus
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: false
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000

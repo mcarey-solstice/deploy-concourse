@@ -1,0 +1,57 @@
+#!/bin/bash
+export SC_VERSION=3431.10
+
+export BOSH_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/bosh?v=262.3
+export BOSH_RELEASE_SHA=31d2912d4320ce6079c190f2218c6053fd1e920f
+
+export VSPHERE_CPI_URL=https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-vsphere-cpi-release?v=42
+export VSPHERE_CPI_SHA=924e13a70f6ee26b388ced696080e4f020fdf84f
+
+export STEMCELL_URL=https://bosh.io/d/stemcells/bosh-vsphere-esxi-ubuntu-trusty-go_agent?v=$SC_VERSION
+export STEMCELL_SHA=5258470ea796e06959256ae8bc260ee45ed7f19f
+
+export BOSH_ALIAS=concourse-bosh
+
+export NETWORK_CIDR=
+export NETWORK_GATEWAY=
+export BOSH_IP=
+export DNS_SERVERS=
+export VCENTER_NETWORK_NAME=
+export VSPHERE_DATACENTER=
+export VCENTER_STORAGE_NAME=
+export VCENTER_IP=
+export VCENTER_USERNAME=
+export VCENTER_PASSWORD=
+export VCENTER_VM_TEMPLATES_FOLDER_NAME=cc_templates
+export VCENTER_VMS_FOLDER_NAME=cc_vms
+export VCENTER_DISK_FOLDER_NAME=cc_disks
+export VCENTER_CLUSTER_NAME=
+export VCENTER_RESOURCE_POOL=
+
+export CONCOURSE_AZ_NAME=
+export CONCOURSE_NW_NAME=
+export RESERVED_IPS="192.168.0.0-192.168.1.30"
+export CONCOURSE_STATIC_IP=
+export CONCOURSE_EXTERNAL_URL=http://concourse.<TLD>
+export CONCOURSE_ADMIN_USERNAME=
+export CONCOURSE_ADMIN_PASSWORD=
+
+export VAULT_INSTANCES=1
+export VAULT_AZ_NAME=$CONCOURSE_AZ_NAME
+export VAULT_NW_NAME=$CONCOURSE_NW_NAME
+export VAULT_STATIC_IP=
+export VAULT_VM_TYPE=small.disk
+
+export ROLE_NAME=cc-role
+export VAULT_POLICY_NAME=cc-policy
+export CONCOURSE_VAULT_MOUNT=/concourse
+
+export VAULT_ADDR=http://$VAULT_STATIC_IP:8200
+export BACKEND_ROLE=
+
+export NEXUS_VERSION=0.2.0
+export NEXUS_INSTANCES=1
+export NEXUS_AZ_NAME=$CONCOURSE_AZ_NAME
+export NEXUS_NW_NAME=$CONCOURSE_NW_NAME
+export NEXUS_VM_TYPE=large.disk
+export NEXUS_STATIC_IP=
