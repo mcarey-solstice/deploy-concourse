@@ -29,3 +29,4 @@ Caution:
 
 -	Do not delete the vault.log and create_token_response.json
 -	Loosing the above will make vault and/or concourse unusable and you have to redeploy concourse
+-	Backup the `vsphere/$BOSH-ALIAS.json` and `vsphere/$BOSH-ALIAS-creds.yml`
