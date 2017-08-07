@@ -146,4 +146,4 @@ bosh2 -e $BOSH_ALIAS -n -d nexus deploy nexus.yml \
   -v NEXUS_VM_TYPE=$NEXUS_VM_TYPE \
   -v STATIC_IP=$NEXUS_STATIC_IP
 
-bosh2 -e concourse-bosh clean-up --all -n
+bosh2 -e $BOSH_ALIAS clean-up --all -n
