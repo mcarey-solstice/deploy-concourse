@@ -12,7 +12,7 @@ bosh2 delete-deployment -e $BOSH_ALIAS -d concourse -n
 bosh2 delete-deployment -e $BOSH_ALIAS -d vault -n
 
 bosh2 delete-env vsphere/bosh.yml \
-    --state=vsphere/$BOSH_ALIAS-bosh-state.json \
+    --state=vsphere/$BOSH_ALIAS-state.json \
     --vars-store=vsphere/$BOSH_ALIAS-creds.yml \
     -o vsphere/cpi.yml \
     -o vsphere/resource-pool.yml \
@@ -39,4 +39,4 @@ bosh2 delete-env vsphere/bosh.yml \
     -v stemcell_url=$STEMCELL_URL \
     -v stemcell_sha=$STEMCELL_SHA
 
-rm vsphere/$BOSH_ALIAS-creds.yml bosh*.tgz vault.log *.json
+rm vsphere/$BOSH_ALIAS-creds.yml bosh*.tgz $BOSH_ALIAS-vault.log *.json

@@ -16,10 +16,7 @@ networks:
     cloud_properties:
       name: ((network_name))
     reserved: [((reserved_ips))]
-    static:
-    - ((static_ips_1))
-    - ((static_ips_2))
-    - ((static_ips_3))
+    static: [((static_ips))]
 
 vm_types:
 - name: micro.disk
