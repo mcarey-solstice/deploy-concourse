@@ -27,6 +27,7 @@ Limitations:
 Caution:
 --------
 
+-	Make sure the network has internet connectivity, else download the releases and push them to bosh director
 -	Do not delete the vault.log and create_token_response.json
 -	Loosing the above will make vault and/or concourse unusable and you have to redeploy concourse
 -	Backup the `vsphere/$BOSH-ALIAS.json` and `vsphere/$BOSH-ALIAS-creds.yml`
