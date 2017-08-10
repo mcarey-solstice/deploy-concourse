@@ -2,16 +2,16 @@
 source ./env
 
 export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=`bosh2 int ./vsphere/$BOSH_ALIAS-creds.yml --path /admin_password`
-bosh2 -e $BOSH_IP --ca-cert <(bosh2 int ./vsphere/$BOSH_ALIAS-creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
+export BOSH_CLIENT_SECRET=`$BOSH_CMD int ./vsphere/$BOSH_ALIAS-creds.yml --path /admin_password`
+$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int ./vsphere/$BOSH_ALIAS-creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
 
-bosh2 delete-deployment -e $BOSH_ALIAS -d nexus -n
+$BOSH_CMD delete-deployment -e $BOSH_ALIAS -d nexus -n
 
-bosh2 delete-deployment -e $BOSH_ALIAS -d concourse -n
+$BOSH_CMD delete-deployment -e $BOSH_ALIAS -d concourse -n
 
-bosh2 delete-deployment -e $BOSH_ALIAS -d vault -n
+$BOSH_CMD delete-deployment -e $BOSH_ALIAS -d vault -n
 
-bosh2 delete-env vsphere/bosh.yml \
+$BOSH_CMD delete-env vsphere/bosh.yml \
     --state=vsphere/$BOSH_ALIAS-state.json \
     --vars-store=vsphere/$BOSH_ALIAS-creds.yml \
     -o vsphere/cpi.yml \

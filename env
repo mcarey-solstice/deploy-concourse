@@ -1,4 +1,9 @@
 #!/bin/bash
+
+BOSH_CMD=bosh2
+VAULT_CMD=vault
+JQ_CMD=jq
+
 export SC_VERSION=3431.10
 
 export BOSH_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/bosh?v=262.3
@@ -30,16 +35,23 @@ export VCENTER_RESOURCE_POOL=
 
 export CONCOURSE_AZ_NAME=
 export CONCOURSE_NW_NAME=
-export RESERVED_IPS="192.168.0.0-192.168.0.10"
-export CONCOURSE_STATIC_IPS=
+export RESERVED_IPS="192.168.0.0-192.168.0.10" # include bosh ip address and the compilation vm's IP's in this range
+export CONCOURSE_STATIC_IPS= # Block of static IP's for Concourse Web
 export CONCOURSE_EXTERNAL_URL=http://concourse.<TLD>
 export CONCOURSE_ADMIN_USERNAME=
 export CONCOURSE_ADMIN_PASSWORD=
+export ATC_WEB_INSTANCES=1
+export ATC_WEB_VM_TYPE=micro.disk
+export CONCOURSE_DB_INSTANCES=1
+export CONCOURSE_DB_VM_TYPE=small.disk
+export CONCOURSE_DB_PERSISTENT_DISK_TYPE=10240
+export CONCOURSE_WORKER_INSTANCES=2
+export CONCOURSE_WORKER_VM_TYPE=xlarge.disk
 
 export VAULT_INSTANCES=3
 export VAULT_AZ_NAME=$CONCOURSE_AZ_NAME
 export VAULT_NW_NAME=$CONCOURSE_NW_NAME
-export VAULT_STATIC_IPS=
+export VAULT_STATIC_IPS= # Block of static IP's for Vault
 export PRIMARY_VAULT_STATIC_IP=
 export VAULT_VM_TYPE=small.disk
 
@@ -50,4 +62,4 @@ export CONCOURSE_VAULT_MOUNT=/concourse
 export VAULT_ADDR=http://$PRIMARY_VAULT_STATIC_IP:8200
 export BACKEND_ROLE=
 
-export CLOUD_CONFIG_STATIC_IPS=192.168.0.11-192.16.0.30
+export CLOUD_CONFIG_STATIC_IPS= # Block all the static IP's here for all your Public facing components, ex: 192.168.10.11-192.168.10.16
