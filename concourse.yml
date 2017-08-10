@@ -18,7 +18,7 @@ instance_groups:
   vm_type: ((ATC_WEB_VM_TYPE))
   stemcell: trusty
   azs: [((CONCOURSE_AZ_NAME))]
-  networks: [{name: ((CONCOURSE_NW_NAME)), static_ips: [((STATIC_IPS))], default: [dns, gateway]}]
+  networks: [{name: ((CONCOURSE_NW_NAME)), static_ips: [((ATC_STATIC_IPS))], default: [dns, gateway]}]
   jobs:
   - name: atc
     release: concourse
@@ -47,7 +47,7 @@ instance_groups:
   stemcell: trusty
   persistent_disk_type: ((CONCOURSE_DB_PERSISTENT_DISK_TYPE))
   azs: [((CONCOURSE_AZ_NAME))]
-  networks: [{name: ((CONCOURSE_NW_NAME))}]
+  networks: [{name: ((CONCOURSE_NW_NAME)), static_ips: [((DB_STATIC_IPS))], default: [dns, gateway]}]
   jobs:
   - name: postgresql
     release: concourse
@@ -62,7 +62,7 @@ instance_groups:
   vm_type: ((CONCOURSE_WORKER_VM_TYPE))
   stemcell: trusty
   azs: [((CONCOURSE_AZ_NAME))]
-  networks: [{name: ((CONCOURSE_NW_NAME))}]
+  networks: [{name: ((CONCOURSE_NW_NAME)), static_ips: [((WORKER_STATIC_IPS))], default: [dns, gateway]}]
   jobs:
   - name: groundcrew
     release: concourse

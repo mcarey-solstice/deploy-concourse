@@ -119,6 +119,16 @@ else
   echo "Vault already initialized and hence skipping this step"
 fi
 
+### Token based authentication ###
+# Create a token with the specified policy
+
+## Approle based authentication ###
+# $VAULT_CMD auth-enable approle
+# $VAULT_CMD write auth/approle/role/$ROLE_NAME policies=$VAULT_POLICY_NAME -period="87600h"
+# export ROLE_ID=$($VAULT_CMD read -format=json auth/approle/role/$ROLE_NAME/role-id | $JQ_CMD .data.role_id | tr -d '"')
+# export SECRET_ID=$($VAULT_CMD write -format=json -f auth/approle/role/$ROLE_NAME/secret-id | $JQ_CMD .data.secret_id | tr -d '"')
+# export CLIENT_TOKEN=$($VAULT_CMD write -format=json auth/approle/login role_id=$ROLE_ID secret_id=$SECRET_ID | $JQ_CMD .auth.client_token | tr -d '"')
+
 #### VAULT CONFIGURATION END #####
 
 CLIENT_TOKEN=$(cat $BOSH_ALIAS-create_token_response.json | $JQ_CMD .auth.client_token | tr -d '"')
@@ -127,7 +137,9 @@ CLIENT_TOKEN=$(cat $BOSH_ALIAS-create_token_response.json | $JQ_CMD .auth.client
 $BOSH_CMD -e $BOSH_ALIAS -n -d concourse deploy concourse.yml \
   -v CONCOURSE_AZ_NAME=$CONCOURSE_AZ_NAME \
   -v CONCOURSE_NW_NAME=$CONCOURSE_NW_NAME \
-  -v STATIC_IPS=$CONCOURSE_STATIC_IPS \
+  -v ATC_STATIC_IPS=$CONCOURSE_WEB_STATIC_IPS \
+  -v DB_STATIC_IPS=$CONCOURSE_DB_STATIC_IPS \
+  -v WORKER_STATIC_IPS=$CONCOURSE_WORKER_STATIC_IPS \
   -v CONCOURSE_EXTERNAL_URL=$CONCOURSE_EXTERNAL_URL \
   -v VAULT_ADDR=$VAULT_ADDR \
   -v CLIENT_TOKEN=$CLIENT_TOKEN \
@@ -138,8 +150,12 @@ $BOSH_CMD -e $BOSH_ALIAS -n -d concourse deploy concourse.yml \
   -v ATC_WEB_VM_TYPE=$ATC_WEB_VM_TYPE \
   -v CONCOURSE_DB_INSTANCES=$CONCOURSE_DB_INSTANCES \
   -v CONCOURSE_DB_VM_TYPE=$CONCOURSE_DB_VM_TYPE \
+  -v CONCOURSE_DB_PERSISTENT_DISK_TYPE=$CONCOURSE_DB_PERSISTENT_DISK_TYPE \
   -v CONCOURSE_WORKER_INSTANCES=$CONCOURSE_WORKER_INSTANCES \
   -v CONCOURSE_WORKER_VM_TYPE=$CONCOURSE_WORKER_VM_TYPE
+  # -v BACKEND_ROLE=$BACKEND_ROLE \
+  # -v ROLE_ID=$ROLE_ID \
+  # -v SECRET_ID=$SECRET_ID
 ##### CONCOURSE DEPLOYMENT END #####
 
 $BOSH_CMD -e $BOSH_ALIAS clean-up --all -n
