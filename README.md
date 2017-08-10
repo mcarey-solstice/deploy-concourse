@@ -1,8 +1,6 @@
 HOW TO USE
 ----------
 
-This script needs to be updated to support multiple instances of concourse `web` and `vault` and `nexus`
-
 Download the following CLI's:
 -----------------------------
 
@@ -14,6 +12,7 @@ Usage:
 ------
 
 -	Fill out the `env` file
+-	Use bolcks of IP's for all the static_ips in the `env` file, ex: 192.168.0.10-192.16.0.12
 -	To deploy, execute `deploy.sh`
 -	To wipe the environment, execute `delete.sh`
 
@@ -31,3 +30,4 @@ Caution:
 -	Do not delete the vault.log and create_token_response.json
 -	Loosing the above will make vault and/or concourse unusable and you have to redeploy concourse
 -	Backup the `vsphere/$BOSH-ALIAS.json` and `vsphere/$BOSH-ALIAS-creds.yml`
+-	Supports single DNS
