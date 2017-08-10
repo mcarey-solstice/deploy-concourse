@@ -33,8 +33,25 @@ export VCENTER_DISK_FOLDER_NAME=cc_disks
 export VCENTER_CLUSTER_NAME=
 export VCENTER_RESOURCE_POOL=
 
-export CONCOURSE_AZ_NAME=
-export CONCOURSE_NW_NAME=
+export AZ_NAME=
+export NETWORK_NAME=
+
+export VAULT_INSTANCES=3
+export VAULT_AZ_NAME=$AZ_NAME
+export VAULT_NW_NAME=$NETWORK_NAME
+export VAULT_STATIC_IPS= # Block of static IP's for Vault
+export PRIMARY_VAULT_STATIC_IP=
+export VAULT_VM_TYPE=small.disk
+
+export ROLE_NAME=cc-role
+export VAULT_POLICY_NAME=cc-policy
+export CONCOURSE_VAULT_MOUNT=/concourse
+
+export VAULT_ADDR=http://$PRIMARY_VAULT_STATIC_IP:8200
+export BACKEND_ROLE= # Leave it blank if not using auth-role
+
+export CONCOURSE_AZ_NAME=$AZ_NAME
+export CONCOURSE_NW_NAME=$NETWORK_NAME
 export RESERVED_IPS="192.168.0.0-192.168.0.10" # include bosh ip address and the compilation vm's IP's in this range
 export CONCOURSE_WEB_STATIC_IPS= # Block of static IP's for Concourse Web
 export CONCOURSE_DB_STATIC_IPS= # Block of static IP's for Concourse DB
@@ -49,19 +66,5 @@ export CONCOURSE_DB_VM_TYPE=small.disk
 export CONCOURSE_DB_PERSISTENT_DISK_TYPE=10240
 export CONCOURSE_WORKER_INSTANCES=2
 export CONCOURSE_WORKER_VM_TYPE=xlarge.disk
-
-export VAULT_INSTANCES=3
-export VAULT_AZ_NAME=$CONCOURSE_AZ_NAME
-export VAULT_NW_NAME=$CONCOURSE_NW_NAME
-export VAULT_STATIC_IPS= # Block of static IP's for Vault
-export PRIMARY_VAULT_STATIC_IP=
-export VAULT_VM_TYPE=small.disk
-
-export ROLE_NAME=cc-role
-export VAULT_POLICY_NAME=cc-policy
-export CONCOURSE_VAULT_MOUNT=/concourse
-
-export VAULT_ADDR=http://$PRIMARY_VAULT_STATIC_IP:8200
-export BACKEND_ROLE=
 
 export CLOUD_CONFIG_STATIC_IPS= # Block all the static IP's here for all your Public facing components, ex: 192.168.10.11-192.168.10.16
