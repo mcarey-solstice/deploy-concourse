@@ -47,13 +47,27 @@ $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config vsphere/cloud-config.yml \
   -v static_ips=$CLOUD_CONFIG_STATIC_IPS \
   -v vcenter_rp=$VCENTER_RESOURCE_POOL
 
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
+if [[ "$BOSH_INTERNET_CONNECTIVITY" == "false" ]]; then
+  wget -O concourse.tgz https://bosh.io/d/github.com/concourse/concourse
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release concourse.tgz
 
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
+  wget -O garden-runc-release.tgz https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release garden-runc-release.tgz
 
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
+  wget -O consul-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release consul-boshrelease.tgz
 
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+  wget -O vault-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release vault-boshrelease.tgz
+else
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
+
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
+
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
+
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+fi
 
 if [[ ! -f "bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz" ]]; then
   wget https://s3.amazonaws.com/bosh-core-stemcells/vsphere/bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz

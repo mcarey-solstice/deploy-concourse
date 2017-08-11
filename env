@@ -15,6 +15,8 @@ export VSPHERE_CPI_SHA=924e13a70f6ee26b388ced696080e4f020fdf84f
 export STEMCELL_URL=https://bosh.io/d/stemcells/bosh-vsphere-esxi-ubuntu-trusty-go_agent?v=$SC_VERSION
 export STEMCELL_SHA=5258470ea796e06959256ae8bc260ee45ed7f19f
 
+export BOSH_INTERNET_CONNECTIVITY=true # set to false if BOSH doesn't have internet connectivity
+
 export BOSH_ALIAS=concourse-bosh
 
 export NETWORK_CIDR=
