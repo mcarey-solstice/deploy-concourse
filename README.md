@@ -12,7 +12,7 @@ Usage:
 ------
 
 -	Fill out the `env` file
--	Use bolcks of IP's for all the static_ips in the `env` file, ex: 192.168.0.10-192.16.0.12
+-	Use blocks of IP's for all the static_ips in the `env` file, ex: 192.168.0.10-192.16.0.12
 -	To deploy, execute `deploy.sh`
 -	To wipe the environment, execute `delete.sh`
 

@@ -15,13 +15,13 @@ export VSPHERE_CPI_SHA=924e13a70f6ee26b388ced696080e4f020fdf84f
 export STEMCELL_URL=https://bosh.io/d/stemcells/bosh-vsphere-esxi-ubuntu-trusty-go_agent?v=$SC_VERSION
 export STEMCELL_SHA=5258470ea796e06959256ae8bc260ee45ed7f19f
 
-export BOSH_INTERNET_CONNECTIVITY=true # set to false if BOSH doesn't have internet connectivity
+export BOSH_INTERNET_CONNECTIVITY=true # set to false if BOSH doesn't have internet connectivity (Not Recommended)
 
 export BOSH_ALIAS=concourse-bosh
 
 export NETWORK_CIDR=
 export NETWORK_GATEWAY=
-export BOSH_IP=
+export BOSH_IP="192.168.0.9"
 export DNS_SERVERS=
 export VCENTER_NETWORK_NAME=
 export VSPHERE_DATACENTER=
@@ -41,9 +41,10 @@ export NETWORK_NAME=
 export VAULT_INSTANCES=3
 export VAULT_AZ_NAME=$AZ_NAME
 export VAULT_NW_NAME=$NETWORK_NAME
-export VAULT_STATIC_IPS= # Block of static IP's for Vault
+export VAULT_STATIC_IPS="192.168.0.11-192.168.0.13" # Block of static IP's for Vault
 export PRIMARY_VAULT_STATIC_IP=
 export VAULT_VM_TYPE=small.disk
+export VAULT_DISK_TYPE=10240
 
 export ROLE_NAME=cc-role
 export VAULT_POLICY_NAME=cc-policy
@@ -54,19 +55,19 @@ export BACKEND_ROLE= # Leave it blank if not using auth-role
 
 export CONCOURSE_AZ_NAME=$AZ_NAME
 export CONCOURSE_NW_NAME=$NETWORK_NAME
-export RESERVED_IPS="192.168.0.0-192.168.0.10" # include bosh ip address and the compilation vm's IP's in this range
-export CONCOURSE_WEB_STATIC_IPS= # Block of static IP's for Concourse Web
-export CONCOURSE_DB_STATIC_IPS= # Block of static IP's for Concourse DB
-export CONCOURSE_WORKER_STATIC_IPS= # Block of static IP's for Concourse Workers
-export CONCOURSE_EXTERNAL_URL=http://concourse.<TLD>
+export CONCOURSE_WEB_STATIC_IPS="192.168.0.14-192.168.0.15" # Block of static IP's for Concourse Web
+export CONCOURSE_DB_STATIC_IPS="192.168.0.16" # Block of static IP's for Concourse DB
+export CONCOURSE_WORKER_STATIC_IPS="192.168.0.17-192.168.0.22" # Block of static IP's for Concourse Workers
+export CONCOURSE_EXTERNAL_URL=http://concourse.<TLD> # FQDN for concourse instance
 export CONCOURSE_ADMIN_USERNAME=
 export CONCOURSE_ADMIN_PASSWORD=
-export ATC_WEB_INSTANCES=1
+export ATC_WEB_INSTANCES=2
 export ATC_WEB_VM_TYPE=micro.disk
 export CONCOURSE_DB_INSTANCES=1
 export CONCOURSE_DB_VM_TYPE=small.disk
 export CONCOURSE_DB_PERSISTENT_DISK_TYPE=10240
-export CONCOURSE_WORKER_INSTANCES=2
+export CONCOURSE_WORKER_INSTANCES=6
 export CONCOURSE_WORKER_VM_TYPE=xlarge.disk
 
-export CLOUD_CONFIG_STATIC_IPS= # Block all the static IP's here for all your Public facing components, ex: 192.168.10.11-192.168.10.16
+export RESERVED_IPS="192.168.0.0-192.168.0.10" # include bosh ip address and the compilation vm's IP's in this range
+export CLOUD_CONFIG_STATIC_IPS="192.168.0.11-192.168.0.22" # Block all the static IP's here for all your Public facing components, ex: 192.168.10.11-192.168.10.16
