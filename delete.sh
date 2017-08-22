@@ -2,8 +2,8 @@
 source ./env
 
 export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=`$BOSH_CMD int ./vsphere/$BOSH_ALIAS-creds.yml --path /admin_password`
-$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int ./vsphere/$BOSH_ALIAS-creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
+export BOSH_CLIENT_SECRET=`$BOSH_CMD int ./$BOSH_ALIAS/creds.yml --path /admin_password`
+$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int ./$BOSH_ALIAS/creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
 
 $BOSH_CMD delete-deployment -e $BOSH_ALIAS -d nexus -n
 
@@ -12,8 +12,8 @@ $BOSH_CMD delete-deployment -e $BOSH_ALIAS -d concourse -n
 $BOSH_CMD delete-deployment -e $BOSH_ALIAS -d vault -n
 
 $BOSH_CMD delete-env vsphere/bosh.yml \
-    --state=vsphere/$BOSH_ALIAS-state.json \
-    --vars-store=vsphere/$BOSH_ALIAS-creds.yml \
+    --state=$BOSH_ALIAS/state.json \
+    --vars-store=$BOSH_ALIAS/creds.yml \
     -o vsphere/cpi.yml \
     -o vsphere/resource-pool.yml \
     -v director_name=bosh-concourse \
@@ -39,4 +39,4 @@ $BOSH_CMD delete-env vsphere/bosh.yml \
     -v stemcell_url=$STEMCELL_URL \
     -v stemcell_sha=$STEMCELL_SHA
 
-rm vsphere/$BOSH_ALIAS-creds.yml bosh*.tgz $BOSH_ALIAS-vault.log *.json
+rm -rf bosh*.tgz $BOSH_ALIAS/

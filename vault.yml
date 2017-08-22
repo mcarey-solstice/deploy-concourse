@@ -6,6 +6,21 @@ instance_groups:
   name: vault
   networks: [{name: ((VAULT_NW_NAME)), static_ips: [((STATIC_IPS))], default: [dns, gateway]}]
   persistent_disk_type: ((VAULT_DISK_TYPE))
+  persistent_disk: 4096
+  persistent_disk_type: ((VAULT_DISK_TYPE))
+  properties:
+    consul:
+      join_hosts: [((STATIC_IPS))]
+    vault:
+      storage:
+        use_consul: true
+      ha:
+        redirect: null
+      listener:
+        tcp:
+          tls:
+            certificate: ((vault-tls.certificate))
+            key: ((vault-tls.private_key))
   vm_type: ((VAULT_VM_TYPE))
   stemcell: trusty
   azs: [((VAULT_AZ_NAME))]
@@ -44,3 +59,15 @@ update:
   max_in_flight: 50
   serial: false
   update_watch_time: 1000-30000
+
+variables:
+- name: vault-ca
+  type: certificate
+  options:
+    is_ca: true
+    common_name: vaultCA
+- name: vault-tls
+  type: certificate
+  options:
+    ca: vault-ca
+    common_name: vault

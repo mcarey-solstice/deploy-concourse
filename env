@@ -46,6 +46,14 @@ export PRIMARY_VAULT_STATIC_IP=
 export VAULT_VM_TYPE=small.disk
 export VAULT_DISK_TYPE=10240
 
+# optional (will be auto-generated if not specified)
+export VAULT_SERVER_CERT_FILENAME=""
+export VAULT_PRIVATE_KEY_FILENAME=""
+
+# path to a PEM-encoded trusted cert chain for Vault CLI
+# (uncomment and fill in if required)
+#export VAULT_CACERT=
+
 export ROLE_NAME=cc-role
 export VAULT_POLICY_NAME=cc-policy
 export CONCOURSE_VAULT_MOUNT=/concourse

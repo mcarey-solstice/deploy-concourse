@@ -1,9 +1,11 @@
 #!/bin/bash -ex
 source ./env
 
+mkdir -p $BOSH_ALIAS
+
 $BOSH_CMD create-env vsphere/bosh.yml \
-  --state=vsphere/$BOSH_ALIAS-state.json \
-  --vars-store=vsphere/$BOSH_ALIAS-creds.yml \
+  --state=$BOSH_ALIAS/state.json \
+  --vars-store=$BOSH_ALIAS/creds.yml \
   -o vsphere/cpi.yml \
   -o vsphere/resource-pool.yml \
   -o vsphere/jumpbox-user.yml \
@@ -31,9 +33,9 @@ $BOSH_CMD create-env vsphere/bosh.yml \
   -v stemcell_sha=$STEMCELL_SHA
 
 export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=`$BOSH_CMD int ./vsphere/$BOSH_ALIAS-creds.yml --path /admin_password`
+export BOSH_CLIENT_SECRET=`$BOSH_CMD int ./$BOSH_ALIAS/creds.yml --path /admin_password`
 
-$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int ./vsphere/$BOSH_ALIAS-creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
+$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int ./$BOSH_ALIAS/creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
 
 $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config vsphere/cloud-config.yml \
   -v concourse_az_name=$CONCOURSE_AZ_NAME \
@@ -48,24 +50,29 @@ $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config vsphere/cloud-config.yml \
   -v vcenter_rp=$VCENTER_RESOURCE_POOL
 
 if [[ "$BOSH_INTERNET_CONNECTIVITY" == "false" ]]; then
-  wget -O concourse.tgz https://bosh.io/d/github.com/concourse/concourse
+  if [ ! -f concourse.tgz ]; then
+    wget -O concourse.tgz https://bosh.io/d/github.com/concourse/concourse
+  fi
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release concourse.tgz
 
-  wget -O garden-runc-release.tgz https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
+  if [ ! -f garden-runc-release.tgz ]; then
+    wget -O garden-runc-release.tgz https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
+  fi
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release garden-runc-release.tgz
 
-  wget -O consul-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
+  if [ ! -f consul-boshrelease.tgz ]; then
+    wget -O consul-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
+  fi
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release consul-boshrelease.tgz
 
-  wget -O vault-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+  if [ ! -f vault-boshrelease.tgz ]; then
+    wget -O vault-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+  fi
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release vault-boshrelease.tgz
 else
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
-
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
-
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
-
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
 fi
 
@@ -76,37 +83,46 @@ fi
 $BOSH_CMD -e $BOSH_ALIAS -n upload-stemcell bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz
 
 ##### VAULT DEPLOYMENT START #####
+VAULT_TLS_FLAGS="--vars-store vault-tls.yml"
+if [[ ! -z $VAULT_SERVER_CERT_FILENAME ]]; then
+  VAULT_TLS_FLAGS="--var-file vault-tls.certificate=$VAULT_SERVER_CERT_FILENAME --var-file vault-tls.private_key=$VAULT_PRIVATE_KEY_FILENAME"
+  echo "Using provided Vault cert"
+else
+  echo "Generating cert for Vault"
+fi
+
 $BOSH_CMD -e $BOSH_ALIAS -n -d $VAULT_CMD deploy vault.yml \
   -v VAULT_AZ_NAME=$VAULT_AZ_NAME \
   -v VAULT_NW_NAME=$VAULT_NW_NAME \
   -v STATIC_IPS=$VAULT_STATIC_IPS \
   -v VAULT_INSTANCES=$VAULT_INSTANCES \
   -v VAULT_VM_TYPE=$VAULT_VM_TYPE \
-  -v VAULT_DISK_TYPE=$VAULT_DISK_TYPE
+  -v VAULT_DISK_TYPE=$VAULT_DISK_TYPE \
+  $VAULT_TLS_FLAGS
 ##### VAULT DEPLOYMENT END #####
 
 ##### VAULT CONFIGURATION START #####
 # Initialize vault
 
 set +e
-IS_VAULT_INTIALIZED=$(curl -m 10 -s -o /dev/null -w "%{http_code}" $VAULT_ADDR/v1/sys/health)
+IS_VAULT_INTIALIZED=$(curl -m 10 -s -o /dev/null -w "%{http_code}" -k $VAULT_ADDR/v1/sys/health)
 set -e
 
 if [ $IS_VAULT_INTIALIZED -eq 501 ]; then
   echo "Initalizing Vault"
   VAULT_INIT_RESPONSE=$($VAULT_CMD init)
 
-  rm -rf $BOSH_ALIAS-vault.log
+  rm -rf $BOSH_ALIAS/vault.log
 
-  echo "$VAULT_INIT_RESPONSE" >> $BOSH_ALIAS-vault.log
+  echo "$VAULT_INIT_RESPONSE" >> $BOSH_ALIAS/vault.log
 
   # Unseal the vault
   set +x
-  export VAULT_TOKEN=$(cat $BOSH_ALIAS-vault.log | grep 'Initial Root Token' | awk '{print $4}')
+  export VAULT_TOKEN=$(cat ./$BOSH_ALIAS/vault.log | grep 'Initial Root Token' | awk '{print $4}')
 
-  $VAULT_CMD unseal $(cat $BOSH_ALIAS-vault.log | grep 'Unseal Key 1' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat $BOSH_ALIAS-vault.log | grep 'Unseal Key 2' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat $BOSH_ALIAS-vault.log | grep 'Unseal Key 3' | awk '{print $4}')
+  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 1' | awk '{print $4}')
+  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 2' | awk '{print $4}')
+  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 3' | awk '{print $4}')
   set -x
 
   # Create a mount for concourse
@@ -115,17 +131,17 @@ if [ $IS_VAULT_INTIALIZED -eq 501 ]; then
   # Create application policy
   $VAULT_CMD policy-write $VAULT_POLICY_NAME vault-policy.hcl
   CREATE_TOKEN_RESPONSE=$($VAULT_CMD token-create --policy=$VAULT_POLICY_NAME -period="87600h" -format=json)
-  rm -rf $BOSH_ALIAS-create_token_response.json
-  echo $CREATE_TOKEN_RESPONSE >> $BOSH_ALIAS-create_token_response.json
+  rm -rf ./$BOSH_ALIAS/create_token_response.json
+  echo $CREATE_TOKEN_RESPONSE >> ./$BOSH_ALIAS/create_token_response.json
 elif [ $IS_VAULT_INTIALIZED -eq 503 ]; then
   # Unseal the vault
   echo "Unsealing vault"
   set +x
-  export VAULT_TOKEN=$(cat $BOSH_ALIAS-vault.log | grep 'Initial Root Token' | awk '{print $4}')
+  export VAULT_TOKEN=$(cat ./$BOSH_ALIAS/vault.log | grep 'Initial Root Token' | awk '{print $4}')
 
-  $VAULT_CMD unseal $(cat $BOSH_ALIAS-vault.log | grep 'Unseal Key 1' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat $BOSH_ALIAS-vault.log | grep 'Unseal Key 2' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat $BOSH_ALIAS-vault.log | grep 'Unseal Key 3' | awk '{print $4}')
+  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 1' | awk '{print $4}')
+  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 2' | awk '{print $4}')
+  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 3' | awk '{print $4}')
   set -x
 elif [ $IS_VAULT_INTIALIZED -eq 500 ]; then
   echo "Vault is hosed.. troubleshoot it using bosh commands"
@@ -146,7 +162,7 @@ fi
 
 #### VAULT CONFIGURATION END #####
 
-CLIENT_TOKEN=$(cat $BOSH_ALIAS-create_token_response.json | $JQ_CMD .auth.client_token | tr -d '"')
+CLIENT_TOKEN=$(cat ./$BOSH_ALIAS/create_token_response.json | $JQ_CMD .auth.client_token | tr -d '"')
 
 #### CONCOURSE DEPLOYMENT START #####
 $BOSH_CMD -e $BOSH_ALIAS -n -d concourse deploy concourse.yml \
