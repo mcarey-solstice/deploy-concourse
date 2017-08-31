@@ -1,5 +1,12 @@
 #!/bin/bash -ex
-source ./env
+
+if [[ "$FOUNDATION" != "" ]]; then
+  echo "sourcing $PWD/$FOUNDATION-env...."
+  source $PWD/$FOUNDATION-env
+else
+  echo "sourcing $PWD/env...."
+  source $PWD/env
+fi
 
 mkdir -p $BOSH_ALIAS
 

@@ -11,9 +11,10 @@ Download the following CLI's:
 Usage:
 ------
 
--	Fill out the `env` file
--	Use blocks of IP's for all the static_ips in the `env` file, ex: 192.168.0.10-192.16.0.12
--	To deploy, execute `deploy.sh`
+- Create a copy of the template `env` file and name it as `dev-env` or `[FOUNDATION]-env`
+-	Fill out the `[FOUNDATION]-env` file
+-	Use blocks of IP's for all the static_ips in the `[FOUNDATION]-env` file, ex: 192.168.0.10-192.16.0.12
+-	To deploy, execute `FOUNDATION=dev deploy.sh`, where `dev` is the name of the foundation
 -	To wipe the environment, execute `delete.sh`
 
 Limitations:
@@ -27,7 +28,7 @@ Caution:
 --------
 
 -	Make sure the network has internet connectivity, else download the releases and push them to bosh director
--	Do not delete the vault.log and create_token_response.json
+-	Backup the `$BOSH-ALIAS` folder, loosing it will make your life miserable :-)
+-	Do not delete the vault.log and create_token_response.json generated under `$BOSH-ALIAS` folder
 -	Loosing the above will make vault and/or concourse unusable and you have to redeploy concourse
--	Backup the `vsphere/$BOSH-ALIAS.json` and `vsphere/$BOSH-ALIAS-creds.yml`
--	Supports single DNS
+-	Supports single DNS Server
