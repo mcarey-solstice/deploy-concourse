@@ -15,7 +15,7 @@ Usage:
 -	Fill out the `[FOUNDATION]-env` file
 -	Use blocks of IP's for all the static_ips in the `[FOUNDATION]-env` file, ex: 192.168.0.10-192.16.0.12
 -	To deploy, execute `FOUNDATION=dev deploy.sh`, where `dev` is the name of the foundation
--	To wipe the environment, execute `delete.sh`
+-	To wipe the environment, execute `FOUNDATION=dev delete.sh`
 
 Limitations:
 ------------
