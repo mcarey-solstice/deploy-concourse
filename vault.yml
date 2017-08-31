@@ -6,32 +6,10 @@ instance_groups:
   name: vault
   networks: [{name: ((VAULT_NW_NAME)), static_ips: [((STATIC_IPS))], default: [dns, gateway]}]
   persistent_disk_type: ((VAULT_DISK_TYPE))
-  persistent_disk: 4096
-  persistent_disk_type: ((VAULT_DISK_TYPE))
-  properties:
-    consul:
-      join_hosts: [((STATIC_IPS))]
-    vault:
-      storage:
-        use_consul: true
-      ha:
-        redirect: null
-      listener:
-        tcp:
-          tls:
-            certificate: ((vault-tls.certificate))
-            key: ((vault-tls.private_key))
   vm_type: ((VAULT_VM_TYPE))
   stemcell: trusty
   azs: [((VAULT_AZ_NAME))]
   jobs:
-  - name: vault
-    release: vault
-    properties:
-      vault:
-        storage:
-          use_consul: true
-
   - name: consul
     release: consul
     provides:
@@ -41,6 +19,21 @@ instance_groups:
     properties:
       consul:
         join_hosts: [((STATIC_IPS))]
+
+  - name: vault
+    release: vault
+    properties:
+      vault:
+        ha:
+          cluster_address: ((LOAD_BALANCER_URL))
+        storage:
+          use_consul: true
+        listener:
+          tcp:
+            port: ((VAULT_TCP_PORT))
+          tls:
+            certificate: ((vault-tls.certificate))
+            key: ((vault-tls.private_key))
 
 releases:
 - name: vault

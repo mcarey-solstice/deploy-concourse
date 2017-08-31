@@ -39,4 +39,4 @@ $BOSH_CMD delete-env vsphere/bosh.yml \
     -v stemcell_url=$STEMCELL_URL \
     -v stemcell_sha=$STEMCELL_SHA
 
-rm -rf bosh*.tgz $BOSH_ALIAS/
+rm -rf ./$BOSH_ALIAS

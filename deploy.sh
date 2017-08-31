@@ -30,7 +30,9 @@ $BOSH_CMD create-env vsphere/bosh.yml \
   -v vsphere_cpi_url=$VSPHERE_CPI_URL \
   -v vsphere_cpi_sha=$VSPHERE_CPI_SHA \
   -v stemcell_url=$STEMCELL_URL \
-  -v stemcell_sha=$STEMCELL_SHA
+  -v stemcell_sha=$STEMCELL_SHA \
+  -v os_conf_release_url=$OS_CONF_RELEASE_URL \
+  -v os_conf_release_sha=$OS_CONF_RELEASE_SHA
 
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=`$BOSH_CMD int ./$BOSH_ALIAS/creds.yml --path /admin_password`
@@ -98,6 +100,8 @@ $BOSH_CMD -e $BOSH_ALIAS -n -d $VAULT_CMD deploy vault.yml \
   -v VAULT_INSTANCES=$VAULT_INSTANCES \
   -v VAULT_VM_TYPE=$VAULT_VM_TYPE \
   -v VAULT_DISK_TYPE=$VAULT_DISK_TYPE \
+  -v LOAD_BALANCER_URL=$VAULT_LOAD_BALANCER_URL \
+  -v VAULT_TCP_PORT=$VAULT_TCP_PORT \
   $VAULT_TLS_FLAGS
 ##### VAULT DEPLOYMENT END #####
 
@@ -105,16 +109,16 @@ $BOSH_CMD -e $BOSH_ALIAS -n -d $VAULT_CMD deploy vault.yml \
 # Initialize vault
 
 set +e
-IS_VAULT_INTIALIZED=$(curl -m 10 -s -o /dev/null -w "%{http_code}" -k $VAULT_ADDR/v1/sys/health)
+IS_VAULT_INTIALIZED=$(curl -m 10 -s -o /dev/null -w "%{http_code}" $VAULT_ADDR/v1/sys/health)
 set -e
 
 if [ $IS_VAULT_INTIALIZED -eq 501 ]; then
   echo "Initalizing Vault"
   VAULT_INIT_RESPONSE=$($VAULT_CMD init)
 
-  rm -rf $BOSH_ALIAS/vault.log
+  rm -rf ./$BOSH_ALIAS/vault.log
 
-  echo "$VAULT_INIT_RESPONSE" >> $BOSH_ALIAS/vault.log
+  echo "$VAULT_INIT_RESPONSE" >> ./$BOSH_ALIAS/vault.log
 
   # Unseal the vault
   set +x
@@ -124,15 +128,6 @@ if [ $IS_VAULT_INTIALIZED -eq 501 ]; then
   $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 2' | awk '{print $4}')
   $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 3' | awk '{print $4}')
   set -x
-
-  # Create a mount for concourse
-  $VAULT_CMD mount -path=$CONCOURSE_VAULT_MOUNT -description="Secrets for use by concourse pipelines" generic
-
-  # Create application policy
-  $VAULT_CMD policy-write $VAULT_POLICY_NAME vault-policy.hcl
-  CREATE_TOKEN_RESPONSE=$($VAULT_CMD token-create --policy=$VAULT_POLICY_NAME -period="87600h" -format=json)
-  rm -rf ./$BOSH_ALIAS/create_token_response.json
-  echo $CREATE_TOKEN_RESPONSE >> ./$BOSH_ALIAS/create_token_response.json
 elif [ $IS_VAULT_INTIALIZED -eq 503 ]; then
   # Unseal the vault
   echo "Unsealing vault"
@@ -145,6 +140,9 @@ elif [ $IS_VAULT_INTIALIZED -eq 503 ]; then
   set -x
 elif [ $IS_VAULT_INTIALIZED -eq 500 ]; then
   echo "Vault is hosed.. troubleshoot it using bosh commands"
+  exit 1
+elif [ $IS_VAULT_INTIALIZED -eq 000 ]; then
+  echo "Unable to connect to $VAULT_ADDR.. Could be DNS, or certificates error"
   exit 1
 else
   echo "Vault already initialized and hence skipping this step"
@@ -161,6 +159,17 @@ fi
 # export CLIENT_TOKEN=$($VAULT_CMD write -format=json auth/approle/login role_id=$ROLE_ID secret_id=$SECRET_ID | $JQ_CMD .auth.client_token | tr -d '"')
 
 #### VAULT CONFIGURATION END #####
+
+if [[ ! -e ./$BOSH_ALIAS/create_token_response.json ]]; then
+  # Create a mount for concourse
+  $VAULT_CMD mount -path=$CONCOURSE_VAULT_MOUNT -description="Secrets for use by concourse pipelines" generic
+
+  # Create application policy
+  $VAULT_CMD policy-write $VAULT_POLICY_NAME vault-policy.hcl
+  CREATE_TOKEN_RESPONSE=$($VAULT_CMD token-create --policy=$VAULT_POLICY_NAME -period="87600h" -format=json)
+  rm -rf ./$BOSH_ALIAS/create_token_response.json
+  echo $CREATE_TOKEN_RESPONSE > ./$BOSH_ALIAS/create_token_response.json
+fi
 
 CLIENT_TOKEN=$(cat ./$BOSH_ALIAS/create_token_response.json | $JQ_CMD .auth.client_token | tr -d '"')
 
@@ -188,5 +197,12 @@ $BOSH_CMD -e $BOSH_ALIAS -n -d concourse deploy concourse.yml \
   # -v ROLE_ID=$ROLE_ID \
   # -v SECRET_ID=$SECRET_ID
 ##### CONCOURSE DEPLOYMENT END #####
+
+$BOSH_CMD -e $BOSH_ALIAS -n -d nexus deploy nexus.yml \
+  -v NEXUS_AZ_NAME=$NEXUS_AZ_NAME \
+  -v NEXUS_NW_NAME=$NEXUS_NW_NAME \
+  -v NEXUS_INSTANCES=$NEXUS_INSTANCES \
+  -v NEXUS_VM_TYPE=$NEXUS_VM_TYPE \
+  -v STATIC_IPS=$NEXUS_STATIC_IPS
 
 $BOSH_CMD -e $BOSH_ALIAS clean-up --all -n
