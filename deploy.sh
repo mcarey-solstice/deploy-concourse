@@ -205,11 +205,4 @@ $BOSH_CMD -e $BOSH_ALIAS -n -d concourse deploy concourse.yml \
   # -v SECRET_ID=$SECRET_ID
 ##### CONCOURSE DEPLOYMENT END #####
 
-$BOSH_CMD -e $BOSH_ALIAS -n -d nexus deploy nexus.yml \
-  -v NEXUS_AZ_NAME=$NEXUS_AZ_NAME \
-  -v NEXUS_NW_NAME=$NEXUS_NW_NAME \
-  -v NEXUS_INSTANCES=$NEXUS_INSTANCES \
-  -v NEXUS_VM_TYPE=$NEXUS_VM_TYPE \
-  -v STATIC_IPS=$NEXUS_STATIC_IPS
-
 $BOSH_CMD -e $BOSH_ALIAS clean-up --all -n
