@@ -22,32 +22,37 @@ vm_types:
 - name: micro.disk
   cloud_properties:
     ram: 1024
-    cpu: 2
+    cpu: 1
     disk: 8192
 - name: small.disk
   cloud_properties:
-    ram: 2048
+    ram: 1024
     cpu: 1
-    disk: 51200
+    disk: 10240
 - name: medium.disk
   cloud_properties:
-    ram: 4096
-    cpu: 2
-    disk: 32768
+    ram: 2096
+    cpu: 1
+    disk: 20480
 - name: large.disk
   cloud_properties:
-    ram: 8192
-    cpu: 2
+    ram: 4096
+    cpu: 1
     disk: 102400
 - name: xlarge.disk
   cloud_properties:
-    ram: 10240
-    cpu: 2
+    ram: 8192
+    cpu: 1
     disk: 131072
 
 disk_types:
 - name: '10240'
   disk_size: 10240
+  cloud_properties:
+    type: thick
+
+- name: '1024'
+  disk_size: 1024
   cloud_properties:
     type: thick
 

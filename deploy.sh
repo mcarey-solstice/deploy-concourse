@@ -16,6 +16,7 @@ $BOSH_CMD create-env vsphere/bosh.yml \
   -o vsphere/cpi.yml \
   -o vsphere/resource-pool.yml \
   -o vsphere/jumpbox-user.yml \
+  -o vsphere/uaa.yml \
   -v director_name=$BOSH_ALIAS \
   -v internal_cidr=$NETWORK_CIDR \
   -v internal_gw=$NETWORK_GATEWAY \
@@ -39,7 +40,9 @@ $BOSH_CMD create-env vsphere/bosh.yml \
   -v stemcell_url=$STEMCELL_URL \
   -v stemcell_sha=$STEMCELL_SHA \
   -v os_conf_release_url=$OS_CONF_RELEASE_URL \
-  -v os_conf_release_sha=$OS_CONF_RELEASE_SHA
+  -v os_conf_release_sha=$OS_CONF_RELEASE_SHA \
+  -v uaa_release_url=$UAA_RELEASE_URL \
+  -v uaa_release_sha=$UAA_RELEASE_SHA
 
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=`$BOSH_CMD int ./$BOSH_ALIAS/creds.yml --path /admin_password`
@@ -58,48 +61,31 @@ $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config vsphere/cloud-config.yml \
   -v static_ips=$CLOUD_CONFIG_STATIC_IPS \
   -v vcenter_rp=$VCENTER_RESOURCE_POOL
 
-if [[ "$BOSH_INTERNET_CONNECTIVITY" == "false" ]]; then
-  if [ ! -f concourse.tgz ]; then
-    wget -O concourse.tgz https://bosh.io/d/github.com/concourse/concourse
-  fi
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release concourse.tgz
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
 
-  if [ ! -f garden-runc-release.tgz ]; then
-    wget -O garden-runc-release.tgz https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
-  fi
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release garden-runc-release.tgz
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
 
-  if [ ! -f consul-boshrelease.tgz ]; then
-    wget -O consul-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
-  fi
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release consul-boshrelease.tgz
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
 
-  if [ ! -f vault-boshrelease.tgz ]; then
-    wget -O vault-boshrelease.tgz https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
-  fi
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release vault-boshrelease.tgz
-else
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
-  $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
-fi
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/postgres-release
 
 if [[ ! -f "bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz" ]]; then
+  rm -f bosh-stemcell-*.tgz
   wget https://s3.amazonaws.com/bosh-core-stemcells/vsphere/bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz
 fi
 
 $BOSH_CMD -e $BOSH_ALIAS -n upload-stemcell bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz
 
 ##### VAULT DEPLOYMENT START #####
-VAULT_TLS_FLAGS="--vars-store vault-tls.yml"
-if [[ ! -z $VAULT_SERVER_CERT_FILENAME ]]; then
+VAULT_TLS_FLAGS="--vars-store $BOSH_ALIAS/vault-tls.yml"
+if [[ ! -z "$VAULT_SERVER_CERT_FILENAME" ]]; then
   VAULT_TLS_FLAGS="--var-file vault-tls.certificate=$VAULT_SERVER_CERT_FILENAME --var-file vault-tls.private_key=$VAULT_PRIVATE_KEY_FILENAME"
   echo "Using provided Vault cert"
 else
   echo "Generating cert for Vault"
 fi
-
 $BOSH_CMD -e $BOSH_ALIAS -n -d $VAULT_CMD deploy vault.yml \
   -v VAULT_AZ_NAME=$VAULT_AZ_NAME \
   -v VAULT_NW_NAME=$VAULT_NW_NAME \
@@ -121,30 +107,19 @@ set -e
 
 if [ $IS_VAULT_INTIALIZED -eq 501 ]; then
   echo "Initalizing Vault"
+
   VAULT_INIT_RESPONSE=$($VAULT_CMD init)
 
   rm -rf ./$BOSH_ALIAS/vault.log
 
-  echo "$VAULT_INIT_RESPONSE" >> ./$BOSH_ALIAS/vault.log
+  echo "$VAULT_INIT_RESPONSE" > ./$BOSH_ALIAS/vault.log
 
   # Unseal the vault
-  set +x
-  export VAULT_TOKEN=$(cat ./$BOSH_ALIAS/vault.log | grep 'Initial Root Token' | awk '{print $4}')
-
-  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 1' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 2' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 3' | awk '{print $4}')
-  set -x
+  ./vault-unseal.sh
 elif [ $IS_VAULT_INTIALIZED -eq 503 ]; then
   # Unseal the vault
   echo "Unsealing vault"
-  set +x
-  export VAULT_TOKEN=$(cat ./$BOSH_ALIAS/vault.log | grep 'Initial Root Token' | awk '{print $4}')
-
-  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 1' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 2' | awk '{print $4}')
-  $VAULT_CMD unseal $(cat ./$BOSH_ALIAS/vault.log | grep 'Unseal Key 3' | awk '{print $4}')
-  set -x
+  ./vault-unseal.sh $VAULT_ADDR
 elif [ $IS_VAULT_INTIALIZED -eq 500 ]; then
   echo "Vault is hosed.. troubleshoot it using bosh commands"
   exit 1
@@ -168,6 +143,7 @@ fi
 #### VAULT CONFIGURATION END #####
 
 if [[ ! -e ./$BOSH_ALIAS/create_token_response.json ]]; then
+  export VAULT_TOKEN=$(cat ./$BOSH_ALIAS/vault.log | grep 'Initial Root Token' | awk '{print $4}')
   # Create a mount for concourse
   $VAULT_CMD mount -path=$CONCOURSE_VAULT_MOUNT -description="Secrets for use by concourse pipelines" generic
 
@@ -182,6 +158,7 @@ CLIENT_TOKEN=$(cat ./$BOSH_ALIAS/create_token_response.json | $JQ_CMD .auth.clie
 
 #### CONCOURSE DEPLOYMENT START #####
 $BOSH_CMD -e $BOSH_ALIAS -n -d concourse deploy concourse.yml \
+  --vars-store=$BOSH_ALIAS/creds.yml \
   -v CONCOURSE_AZ_NAME=$CONCOURSE_AZ_NAME \
   -v CONCOURSE_NW_NAME=$CONCOURSE_NW_NAME \
   -v ATC_STATIC_IPS=$CONCOURSE_WEB_STATIC_IPS \
@@ -204,12 +181,5 @@ $BOSH_CMD -e $BOSH_ALIAS -n -d concourse deploy concourse.yml \
   # -v ROLE_ID=$ROLE_ID \
   # -v SECRET_ID=$SECRET_ID
 ##### CONCOURSE DEPLOYMENT END #####
-
-$BOSH_CMD -e $BOSH_ALIAS -n -d nexus deploy nexus.yml \
-  -v NEXUS_AZ_NAME=$NEXUS_AZ_NAME \
-  -v NEXUS_NW_NAME=$NEXUS_NW_NAME \
-  -v NEXUS_INSTANCES=$NEXUS_INSTANCES \
-  -v NEXUS_VM_TYPE=$NEXUS_VM_TYPE \
-  -v STATIC_IPS=$NEXUS_STATIC_IPS
 
 $BOSH_CMD -e $BOSH_ALIAS clean-up --all -n

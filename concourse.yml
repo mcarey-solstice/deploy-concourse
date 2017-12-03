@@ -6,6 +6,8 @@ releases:
   version: latest
 - name: garden-runc
   version: latest
+- name: postgres
+  version: latest
 
 stemcells:
 - alias: trusty
@@ -26,7 +28,12 @@ instance_groups:
       external_url: ((CONCOURSE_EXTERNAL_URL))
       basic_auth_username: ((CONCOURSE_ADMIN_USERNAME))
       basic_auth_password: ((CONCOURSE_ADMIN_PASSWORD))
-      postgresql_database: &atc_db atc
+      token_signing_key: ((token_signing_key))
+      postgresql:
+        database: &db_name atc
+        role: &db_role
+          name: concourse
+          password: ((concourse_postgres_password))
       bind_port: 80
       vault:
         path_prefix: ((CONCOURSE_VAULT_MOUNT))
@@ -39,7 +46,11 @@ instance_groups:
           #   secret_id: ((SECRET_ID))
   - name: tsa
     release: concourse
-    properties: {}
+    properties:
+      log_level: debug
+      host_key: ((tsa_host_key))
+      token_signing_key: ((token_signing_key))
+      authorized_keys: [((worker_key.public_key))]
 
 - name: db
   instances: ((CONCOURSE_DB_INSTANCES))
@@ -49,13 +60,15 @@ instance_groups:
   azs: [((CONCOURSE_AZ_NAME))]
   networks: [{name: ((CONCOURSE_NW_NAME)), static_ips: [((DB_STATIC_IPS))], default: [dns, gateway]}]
   jobs:
-  - name: postgresql
-    release: concourse
+  - name: postgres
+    release: postgres
     properties:
       databases:
-      - name: *atc_db
-        role: atc
-        password: password
+        port: 5432
+        databases:
+        - name: *db_name
+        roles:
+        - *db_role
 
 - name: worker
   instances: ((CONCOURSE_WORKER_INSTANCES))
@@ -66,20 +79,34 @@ instance_groups:
   jobs:
   - name: groundcrew
     release: concourse
-    properties: {}
+    properties:
+      drain_timeout: 10m
+      tsa: {worker_key: ((worker_key))}
   - name: baggageclaim
     release: concourse
-    properties: {}
+    properties:
+      log_level: debug
   - name: garden
     release: garden-runc
     properties:
       garden:
         listen_network: tcp
         listen_address: 0.0.0.0:7777
+        allow_host_access: true
+
+variables:
+- name: concourse_postgres_password
+  type: password
+- name: token_signing_key
+  type: rsa
+- name: tsa_host_key
+  type: ssh
+- name: worker_key
+  type: ssh
 
 update:
   canaries: 1
-  max_in_flight: 3
+  max_in_flight: 1
   serial: false
   canary_watch_time: 1000-120000
   update_watch_time: 1000-120000
