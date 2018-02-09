@@ -1,0 +1,58 @@
+#!/bin/bash
+
+export BOSH_RELEASE_REPOSITORY=cloudfoundry/bosh
+export VSPHERE_CPI_RELEASE_REPOSITORY=cloudfoundry-incubator/bosh-vsphere-cpi-release
+export OS_CONF_RELEASE_REPOSITORY=cloudfoundry/os-conf-release
+export UAA_RELEASE_REPOSITORY=cloudfoundry/uaa-release
+export CREDHUB_RELEASE_REPOSITORY=pivotal-cf/credhub-release
+
+function getReleaseDetails() {
+  PAYLOAD=$(curl -s --fail "https://bosh.io/api/v1/releases/github.com/$1" | jq '.[0]')
+  VERSION=$(echo "$PAYLOAD" | jq -r '.version')
+  SHA1=$(echo "$PAYLOAD" | jq -r '.sha1')
+  RELEASE_URL=$(echo "$PAYLOAD" | jq -r '.url')
+
+  echo "$VERSION" "$SHA1" "$RELEASE_URL"
+}
+
+function getStemcellDetails() {
+  PAYLOAD=$(curl -s --fail "https://bosh.io/api/v1/stemcells/$1?all=1" | jq '.[0]')
+  VERSION=$(echo "$PAYLOAD" | jq -r '.version')
+  SHA1=$(echo "$PAYLOAD" | jq -r '.regular.sha1')
+  RELEASE_URL=$(echo "$PAYLOAD" | jq -r '.regular.url')
+  echo "$VERSION" "$SHA1" "$RELEASE_URL"
+}
+
+read version sha1 release_url < <(getReleaseDetails $BOSH_RELEASE_REPOSITORY)
+export BOSH_RELEASE_VERSION=$version
+export BOSH_RELEASE_SHA=$sha1
+export BOSH_RELEASE_URL=$release_url
+
+read version sha1 release_url < <(getReleaseDetails $VSPHERE_CPI_RELEASE_REPOSITORY)
+export VSPHERE_CPI_RELEASE_VERSION=$version
+export VSPHERE_CPI_SHA=$sha1
+export VSPHERE_CPI_URL=$release_url
+
+read version sha1 release_url < <(getReleaseDetails $OS_CONF_RELEASE_REPOSITORY)
+export OS_CONF_RELEASE_VERSION=$version
+export OS_CONF_RELEASE_SHA=$sha1
+export OS_CONF_RELEASE_URL=$release_url
+
+read version sha1 release_url < <(getReleaseDetails $UAA_RELEASE_REPOSITORY)
+export UAA_RELEASE_VERSION=$version
+export UAA_RELEASE_SHA=$sha1
+export UAA_RELEASE_URL=$release_url
+
+read version sha1 release_url < <(getReleaseDetails $CREDHUB_RELEASE_REPOSITORY)
+export CREDHUB_RELEASE_VERSION=1.6.5
+export CREDHUB_RELEASE_URL=https://bosh.io/d/github.com/pivotal-cf/credhub-release?v=$CREDHUB_RELEASE_VERSION
+
+export CONSUL_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
+export VAULT_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+
+export STEMCELL_NAME=bosh-vsphere-esxi-ubuntu-trusty-go_agent
+
+read version sha1 stemcell_url < <(getStemcellDetails $STEMCELL_NAME)
+export SC_VERSION=$version
+export STEMCELL_SHA=$sha1
+export STEMCELL_URL=$stemcell_url
