@@ -53,6 +53,6 @@ export VAULT_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/vau
 export STEMCELL_NAME=bosh-vsphere-esxi-ubuntu-trusty-go_agent
 
 read version sha1 stemcell_url < <(getStemcellDetails $STEMCELL_NAME)
-export SC_VERSION=$version
-export STEMCELL_SHA=$sha1
-export STEMCELL_URL=$stemcell_url
+export SC_VERSION=3468.22
+export STEMCELL_SHA=2071143b3d6d25bb8ca1240e9a69a49ab82681e4
+export STEMCELL_URL=https://bosh.io/d/stemcells/bosh-vsphere-esxi-ubuntu-trusty-go_agent?v=$SC_VERSION
