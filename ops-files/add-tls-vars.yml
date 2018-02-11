@@ -19,3 +19,7 @@
       common_name: ((concourse_fqdn))
       alternative_names:
       - ((concourse_fqdn))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/tls_bind_port?
+  value: ((tls_bind_port))
