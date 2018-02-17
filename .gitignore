@@ -1,6 +1,5 @@
 *.log
 *.json
-*cred*.yml
 concourse-deployment/
 bosh-deployment/
 *.tgz
