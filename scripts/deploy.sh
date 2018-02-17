@@ -86,7 +86,10 @@ if [[ "$CREDENTIAL_MANAGER" == "credhub" ]]; then
   echo "Credential manager selected is credhub"
   source $PWD/scripts/deploy_credhub.sh
 
-  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/credhub/add-credhub.yml"
+  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/credhub/add-credhub.yml \
+        -o $PWD/ops-files/credhub-tls-cert-verify.yml"
+
+  CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v insecure_skip_verify=$INSECURE_SKIP_VERIFY"
 
 elif [[ "$CREDENTIAL_MANAGER" == "vault" ]]; then
   echo "Credential manager selected is vault"
@@ -94,10 +97,12 @@ elif [[ "$CREDENTIAL_MANAGER" == "vault" ]]; then
 
   CLIENT_TOKEN=$(cat $PWD/$BOSH_ALIAS/create_token_response.json | $JQ_CMD .auth.client_token | tr -d '"')
 
-  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/vault/add-vault.yml"
+  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/vault/add-vault.yml \
+        -o $PWD/ops-files/vault-tls-cert-verify.yml"
   CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v VAULT_ADDR=$VAULT_ADDR \
       -v CLIENT_TOKEN=$CLIENT_TOKEN \
-      -v CONCOURSE_VAULT_MOUNT=$CONCOURSE_VAULT_MOUNT"
+      -v CONCOURSE_VAULT_MOUNT=$CONCOURSE_VAULT_MOUNT \
+      -v insecure_skip_verify=$INSECURE_SKIP_VERIFY"
   # -v BACKEND_ROLE=$BACKEND_ROLE \
   # -v ROLE_ID=$ROLE_ID \
   # -v SECRET_ID=$SECRET_ID
@@ -112,7 +117,7 @@ fi
 
 #### CONCOURSE DEPLOYMENT START #####
 
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse?v=3.8.0
 
 $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
 

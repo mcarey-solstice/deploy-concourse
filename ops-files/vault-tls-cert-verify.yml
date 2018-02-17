@@ -1,0 +1,5 @@
+# create ca to sign our cert
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/vault/tls/insecure_skip_verify?
+  value: ((insecure_skip_verify))

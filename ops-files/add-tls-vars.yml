@@ -6,7 +6,7 @@
     type: certificate
     options:
       is_ca: true
-      common_name: cloudteam
+      common_name: ((concourse_fqdn))
 
 # generate the cert
 - path: /variables?/name=atc_tls?
@@ -19,6 +19,7 @@
       common_name: ((concourse_fqdn))
       alternative_names:
       - ((concourse_fqdn))
+      - 127.0.0.1
 
 - type: replace
   path: /instance_groups/name=web/jobs/name=atc/properties/tls_bind_port?

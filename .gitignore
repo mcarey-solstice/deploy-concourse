@@ -4,3 +4,4 @@
 concourse-deployment/
 bosh-deployment/
 *.tgz
+.DS_Store
