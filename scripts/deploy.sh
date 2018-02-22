@@ -16,6 +16,15 @@ else
   cd $PWD/bosh-deployment && git pull && cd ..
 fi
 
+HTTP_PROXY_OPS_FILES=" "
+HTTP_PROXY_VARS=" "
+if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
+  HTTP_PROXY_OPS_FILES=" -o bosh-deployment/misc/proxy.yml "
+  HTTP_PROXY_VARS=" -v http_proxy=$HTTP_PROXY \
+        -v https_proxy=$HTTPS_PROXY \
+        -v no_proxy=$NO_PROXY "
+fi
+
 $BOSH_CMD create-env $PWD/bosh-deployment/bosh.yml \
   --state=$PWD/$BOSH_ALIAS/state.json \
   --vars-store=$PWD/$BOSH_ALIAS/creds.yml \
@@ -50,7 +59,8 @@ $BOSH_CMD create-env $PWD/bosh-deployment/bosh.yml \
   -v os_conf_release_url=$OS_CONF_RELEASE_URL \
   -v os_conf_release_sha=$OS_CONF_RELEASE_SHA \
   -v uaa_release_url=$UAA_RELEASE_URL \
-  -v uaa_release_sha=$UAA_RELEASE_SHA
+  -v uaa_release_sha=$UAA_RELEASE_SHA \
+  $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
 
 source $PWD/scripts/bosh-login.sh
 
@@ -115,6 +125,14 @@ if [[ "$CONCOURSE_RELEASES_LATEST" == "false" ]]; then
   CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/concourse-deployment/versions.yml"
 fi
 
+HTTP_PROXY_OPS_FILES=" "
+HTTP_PROXY_VARS=" "
+if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
+  HTTP_PROXY_OPS_FILES=" -o concourse-deployment/cluster/operations/http-proxy.yml "
+  HTTP_PROXY_VARS=" -v proxy_url=$HTTP_PROXY \
+    -v no_proxy=[$NO_PROXY] "
+fi
+
 #### CONCOURSE DEPLOYMENT START #####
 
 $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse?v=3.8.0
@@ -125,7 +143,6 @@ $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfou
 
 $BOSH_CMD -e $BOSH_ALIAS -n deploy $PWD/concourse-deployment/cluster/concourse.yml \
   -d concourse \
-  -l $PWD/ops-files/vars.yml \
   $CONCOURSE_VERSIONS_TO_DEPLOY \
   -o $PWD/ops-files/nws-azs.yml \
   -o $PWD/concourse-deployment/cluster/operations/scale.yml \
@@ -133,6 +150,8 @@ $BOSH_CMD -e $BOSH_ALIAS -n deploy $PWD/concourse-deployment/cluster/concourse.y
   -o $PWD/concourse-deployment/cluster/operations/tls.yml \
   -o $PWD/ops-files/add-tls-vars.yml \
   --vars-store=$PWD/$BOSH_ALIAS/concourse-vars.yml \
+  -v atc_basic_auth.username=$CONCOURSE_ADMIN_USERNAME \
+  -v atc_basic_auth.password=$CONCOURSE_ADMIN_PASSWORD \
   -v tls_bind_port=$TLS_BIND_PORT \
   -v deployment_name=concourse \
   -v az_name=$CONCOURSE_AZ_NAME \
@@ -151,7 +170,8 @@ $BOSH_CMD -e $BOSH_ALIAS -n deploy $PWD/concourse-deployment/cluster/concourse.y
   -v worker_instances=$CONCOURSE_WORKER_INSTANCES \
   -v worker_vm_type=$CONCOURSE_WORKER_VM_TYPE \
   -v skip_ssl_validation=true \
-  $CONCOURSE_DEPLOYMENT_OPS_FILES $CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS
+  $CONCOURSE_DEPLOYMENT_OPS_FILES $CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS \
+  $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
 
 ##### CONCOURSE DEPLOYMENT END #####
 

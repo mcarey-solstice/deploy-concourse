@@ -3,7 +3,7 @@ azs:
 - name: ((az_name))
   cloud_properties:
     datacenters:
-    - clusters: [((vcenter_cluster)): { resource_pool: ((vcenter_rp)) }]
+    - clusters: [((vcenter_cluster)): {}]
 
 networks:
 - name: ((nw_name))
@@ -46,13 +46,18 @@ vm_types:
     disk: 131072
 
 disk_types:
-- name: '10240'
-  disk_size: 10240
+- name: small
+  disk_size: 1024
   cloud_properties:
     type: thick
 
-- name: '1024'
-  disk_size: 1024
+- name: large
+  disk_size: 50_000
+  cloud_properties:
+    type: thick
+
+- name: xlarge
+  disk_size: 10240
   cloud_properties:
     type: thick
 
