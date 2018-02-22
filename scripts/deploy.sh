@@ -40,16 +40,16 @@ $BOSH_CMD create-env $PWD/bosh-deployment/bosh.yml \
   -v internal_ip=$BOSH_IP \
   -v dns_servers=$DNS_SERVERS \
   -v network_name="$VCENTER_NETWORK_NAME" \
-  -v vcenter_dc=$VSPHERE_DATACENTER \
-  -v vcenter_ds=$VCENTER_STORAGE_NAME \
+  -v vcenter_dc="$VSPHERE_DATACENTER" \
+  -v vcenter_ds="$VCENTER_STORAGE_NAME" \
   -v vcenter_ip=$VCENTER_IP \
   -v vcenter_user=$VCENTER_USERNAME \
-  -v vcenter_password=$VCENTER_PASSWORD \
-  -v vcenter_templates=$VCENTER_VM_TEMPLATES_FOLDER_NAME \
-  -v vcenter_vms=$VCENTER_VMS_FOLDER_NAME \
-  -v vcenter_disks=$VCENTER_DISK_FOLDER_NAME \
-  -v vcenter_cluster=$VCENTER_CLUSTER_NAME \
-  -v vcenter_rp=$VCENTER_RESOURCE_POOL \
+  -v vcenter_password="$VCENTER_PASSWORD" \
+  -v vcenter_templates="$VCENTER_VM_TEMPLATES_FOLDER_NAME" \
+  -v vcenter_vms="$VCENTER_VMS_FOLDER_NAME" \
+  -v vcenter_disks="$VCENTER_DISK_FOLDER_NAME" \
+  -v vcenter_cluster="$VCENTER_CLUSTER_NAME" \
+  -v vcenter_rp="$VCENTER_RESOURCE_POOL" \
   -v bosh_release_url=$BOSH_RELEASE_URL \
   -v bosh_release_sha=$BOSH_RELEASE_SHA \
   -v vsphere_cpi_release_url=$VSPHERE_CPI_URL \
@@ -67,14 +67,14 @@ source $PWD/scripts/bosh-login.sh
 $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $PWD/cloud-configs/cloud-config.yml \
   -v az_name=$CONCOURSE_AZ_NAME \
   -v nw_name=$CONCOURSE_NW_NAME \
-  -v vcenter_cluster=$VCENTER_CLUSTER_NAME \
+  -v vcenter_cluster="$VCENTER_CLUSTER_NAME" \
   -v network_cidr=$NETWORK_CIDR \
-  -v network_name=$VCENTER_NETWORK_NAME \
+  -v network_name="$VCENTER_NETWORK_NAME" \
   -v network_gateway=$NETWORK_GATEWAY \
   -v dns_servers=$DNS_SERVERS \
   -v reserved_ips=$RESERVED_IPS \
   -v static_ips=$CLOUD_CONFIG_STATIC_IPS \
-  -v vcenter_rp=$VCENTER_RESOURCE_POOL
+  -v vcenter_rp="$VCENTER_RESOURCE_POOL"
 
 if [ ! -d "$PWD/concourse-deployment" ]; then
   git clone https://github.com/concourse/concourse-deployment
