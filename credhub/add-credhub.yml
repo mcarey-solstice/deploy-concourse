@@ -238,6 +238,7 @@
         certificate: ((credhub-tls.ca))
     client_id: concourse_to_credhub
     client_secret: ((concourse_to_credhub_secret))
+    path_prefix: ((concourse_path_prefix))
 
 # modify update settings to give UAA enough time to start up
 - type: replace

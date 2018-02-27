@@ -34,46 +34,46 @@ $BOSH_CMD create-env $PWD/bosh-deployment/bosh.yml \
   -o $PWD/bosh-deployment/uaa.yml \
   -o $PWD/ops-files/versions.yml \
   -o $PWD/ops-files/dns.yml \
-  -v director_name=$BOSH_ALIAS \
-  -v internal_cidr=$NETWORK_CIDR \
-  -v internal_gw=$NETWORK_GATEWAY \
-  -v internal_ip=$BOSH_IP \
-  -v dns_servers=$DNS_SERVERS \
+  -v director_name="$BOSH_ALIAS" \
+  -v internal_cidr="$NETWORK_CIDR" \
+  -v internal_gw="$NETWORK_GATEWAY" \
+  -v internal_ip="$BOSH_IP" \
+  -v dns_servers="$DNS_SERVERS" \
   -v network_name="$VCENTER_NETWORK_NAME" \
   -v vcenter_dc="$VSPHERE_DATACENTER" \
   -v vcenter_ds="$VCENTER_STORAGE_NAME" \
-  -v vcenter_ip=$VCENTER_IP \
-  -v vcenter_user=$VCENTER_USERNAME \
+  -v vcenter_ip="$VCENTER_IP" \
+  -v vcenter_user="$VCENTER_USERNAME" \
   -v vcenter_password="$VCENTER_PASSWORD" \
   -v vcenter_templates="$VCENTER_VM_TEMPLATES_FOLDER_NAME" \
   -v vcenter_vms="$VCENTER_VMS_FOLDER_NAME" \
   -v vcenter_disks="$VCENTER_DISK_FOLDER_NAME" \
   -v vcenter_cluster="$VCENTER_CLUSTER_NAME" \
   -v vcenter_rp="$VCENTER_RESOURCE_POOL" \
-  -v bosh_release_url=$BOSH_RELEASE_URL \
-  -v bosh_release_sha=$BOSH_RELEASE_SHA \
-  -v vsphere_cpi_release_url=$VSPHERE_CPI_URL \
-  -v vsphere_cpi_release_sha=$VSPHERE_CPI_SHA \
-  -v stemcell_url=$STEMCELL_URL \
-  -v stemcell_sha=$STEMCELL_SHA \
-  -v os_conf_release_url=$OS_CONF_RELEASE_URL \
-  -v os_conf_release_sha=$OS_CONF_RELEASE_SHA \
-  -v uaa_release_url=$UAA_RELEASE_URL \
-  -v uaa_release_sha=$UAA_RELEASE_SHA \
+  -v bosh_release_url="$BOSH_RELEASE_URL" \
+  -v bosh_release_sha="$BOSH_RELEASE_SHA" \
+  -v vsphere_cpi_release_url="$VSPHERE_CPI_URL" \
+  -v vsphere_cpi_release_sha="$VSPHERE_CPI_SHA" \
+  -v stemcell_url="$STEMCELL_URL" \
+  -v stemcell_sha="$STEMCELL_SHA" \
+  -v os_conf_release_url="$OS_CONF_RELEASE_URL" \
+  -v os_conf_release_sha="$OS_CONF_RELEASE_SHA" \
+  -v uaa_release_url="$UAA_RELEASE_URL" \
+  -v uaa_release_sha="$UAA_RELEASE_SHA" \
   $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
 
 source $PWD/scripts/bosh-login.sh
 
 $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $PWD/cloud-configs/cloud-config.yml \
-  -v az_name=$CONCOURSE_AZ_NAME \
-  -v nw_name=$CONCOURSE_NW_NAME \
+  -v az_name="$CONCOURSE_AZ_NAME" \
+  -v nw_name="$CONCOURSE_NW_NAME" \
   -v vcenter_cluster="$VCENTER_CLUSTER_NAME" \
-  -v network_cidr=$NETWORK_CIDR \
+  -v network_cidr="$NETWORK_CIDR" \
   -v network_name="$VCENTER_NETWORK_NAME" \
-  -v network_gateway=$NETWORK_GATEWAY \
-  -v dns_servers=$DNS_SERVERS \
-  -v reserved_ips=$RESERVED_IPS \
-  -v static_ips=$CLOUD_CONFIG_STATIC_IPS \
+  -v network_gateway="$NETWORK_GATEWAY" \
+  -v dns_servers="$DNS_SERVERS" \
+  -v reserved_ips="$RESERVED_IPS" \
+  -v static_ips="$CLOUD_CONFIG_STATIC_IPS" \
   -v vcenter_rp="$VCENTER_RESOURCE_POOL"
 
 if [ ! -d "$PWD/concourse-deployment" ]; then
@@ -99,7 +99,8 @@ if [[ "$CREDENTIAL_MANAGER" == "credhub" ]]; then
   CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/credhub/add-credhub.yml \
         -o $PWD/ops-files/credhub-tls-cert-verify.yml"
 
-  CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v insecure_skip_verify=$INSECURE_SKIP_VERIFY"
+  CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v insecure_skip_verify=$INSECURE_SKIP_VERIFY \
+      -v concourse_path_prefix=$CONCOURSE_PATH_PREFIX"
 
 elif [[ "$CREDENTIAL_MANAGER" == "vault" ]]; then
   echo "Credential manager selected is vault"
@@ -109,9 +110,9 @@ elif [[ "$CREDENTIAL_MANAGER" == "vault" ]]; then
 
   CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/vault/add-vault.yml \
         -o $PWD/ops-files/vault-tls-cert-verify.yml"
-  CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v VAULT_ADDR=$VAULT_ADDR \
-      -v CLIENT_TOKEN=$CLIENT_TOKEN \
-      -v CONCOURSE_VAULT_MOUNT=$CONCOURSE_VAULT_MOUNT \
+  CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v vault_addr=$VAULT_ADDR \
+      -v client_token=$CLIENT_TOKEN \
+      -v concourse_path_prefix=$CONCOURSE_PATH_PREFIX \
       -v insecure_skip_verify=$INSECURE_SKIP_VERIFY"
   # -v BACKEND_ROLE=$BACKEND_ROLE \
   # -v ROLE_ID=$ROLE_ID \
@@ -135,7 +136,7 @@ fi
 
 #### CONCOURSE DEPLOYMENT START #####
 
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse?v=3.8.0
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
 
 $BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
 

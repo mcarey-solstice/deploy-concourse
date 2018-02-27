@@ -41,7 +41,7 @@ if [ $IS_VAULT_INTIALIZED -eq 501 ]; then
   echo "$VAULT_INIT_RESPONSE" > $PWD/$BOSH_ALIAS/vault.log
 
   # Unseal the vault
-  IPS=`bosh -e concourse-bosh vms -d vault --json | jq -r '.Tables[0].Rows[] | .ips'`
+  IPS=`bosh -e $BOSH_ALIAS vms -d vault --json | jq -r '.Tables[0].Rows[] | .ips'`
   for ip in $IPS; do
     $PWD/scripts/vault-unseal.sh http://$ip
   done
@@ -49,7 +49,7 @@ if [ $IS_VAULT_INTIALIZED -eq 501 ]; then
 elif [ $IS_VAULT_INTIALIZED -eq 503 ]; then
   # Unseal the vault
   echo "Unsealing vault"
-  IPS=`bosh -e concourse-bosh vms -d vault --json | jq -r '.Tables[0].Rows[] | .ips'`
+  IPS=`bosh -e $BOSH_ALIAS vms -d vault --json | jq -r '.Tables[0].Rows[] | .ips'`
   for ip in $IPS; do
     $PWD/scripts/vault-unseal.sh http://$ip
   done

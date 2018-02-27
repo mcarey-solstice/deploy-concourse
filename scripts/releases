@@ -44,7 +44,7 @@ export UAA_RELEASE_SHA=$sha1
 export UAA_RELEASE_URL=$release_url
 
 read version sha1 release_url < <(getReleaseDetails $CREDHUB_RELEASE_REPOSITORY)
-export CREDHUB_RELEASE_VERSION=1.6.5
+export CREDHUB_RELEASE_VERSION=$version
 export CREDHUB_RELEASE_URL=https://bosh.io/d/github.com/pivotal-cf/credhub-release?v=$CREDHUB_RELEASE_VERSION
 
 export CONSUL_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
@@ -53,6 +53,6 @@ export VAULT_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/vau
 export STEMCELL_NAME=bosh-vsphere-esxi-ubuntu-trusty-go_agent
 
 read version sha1 stemcell_url < <(getStemcellDetails $STEMCELL_NAME)
-export SC_VERSION=3468.22
-export STEMCELL_SHA=2071143b3d6d25bb8ca1240e9a69a49ab82681e4
+export SC_VERSION=3468.25
+export STEMCELL_SHA=c55762096a3a62f71cad46b0a1cb6687a925c569
 export STEMCELL_URL=https://bosh.io/d/stemcells/bosh-vsphere-esxi-ubuntu-trusty-go_agent?v=$SC_VERSION

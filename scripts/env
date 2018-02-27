@@ -33,6 +33,8 @@ export AZ_NAME= # Logical Name for AZ
 export NETWORK_NAME= # Logical Name for network
 
 export CREDENTIAL_MANAGER=credhub # credhub|vault|leave blank
+export INSECURE_SKIP_VERIFY=true
+export CONCOURSE_PATH_PREFIX=/concourse
 
 export VAULT_ADDR=http://vault.example.io
 export VAULT_INSTANCES=3
@@ -77,10 +79,8 @@ export CONCOURSE_WORKER_INSTANCES=1
 export CONCOURSE_WORKER_VM_TYPE=xlarge.disk
 export TLS_BIND_PORT=443
 
-export RESERVED_IPS=172.16.0.0-172.16.1.30
+export RESERVED_IPS="[\"172.16.0.0-172.16.1.30\"]"
 export CLOUD_CONFIG_STATIC_IPS=172.16.1.32-172.16.1.41 # Block all the static IP's used here in this deployment
-
-export INSECURE_SKIP_VERIFY=true
 
 UNAME=$(uname)
 if [[ "$UNAME" == "Darwin" && "$CREDENTIAL_MANAGER" == "vault" ]]; then

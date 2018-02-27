@@ -3,10 +3,10 @@
 - type: replace
   path: /instance_groups/name=web/jobs/name=atc/properties/vault?
   value:
-    path_prefix: ((CONCOURSE_VAULT_MOUNT))
-    url: ((VAULT_ADDR))
+    path_prefix: ((concourse_path_prefix))
+    url: ((vault_addr))
     auth:
-      client_token: ((CLIENT_TOKEN))
+      client_token: ((client_token))
       # backend: ((BACKEND_ROLE))
       # params:
       #   role_id: ((ROLE_ID))
