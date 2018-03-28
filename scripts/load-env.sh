@@ -24,8 +24,6 @@ else
   source "$__BASEDIR__"/scripts/env
 fi
 
-source "$__BASEDIR__"/releases
-
 UNAME=$(uname)
 if [[ "$UNAME" == "Darwin" && "$CREDENTIAL_MANAGER" == "vault" ]]; then
   networksetup -setdnsservers Wi-Fi $DNS_SERVERS

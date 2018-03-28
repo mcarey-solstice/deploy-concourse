@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load-env.sh
+source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/releases
+
 $BOSH_CMD -e $BOSH_ALIAS -n upload-release $CONSUL_RELEASE_URL
 
 $BOSH_CMD -e $BOSH_ALIAS -n upload-release $VAULT_RELEASE_URL
