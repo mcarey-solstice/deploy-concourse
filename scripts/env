@@ -1,14 +1,11 @@
 #!/bin/bash
 
-BOSH_CMD=bosh
-VAULT_CMD=vault
-JQ_CMD=jq
-CREDHUB_CMD=credhub
-export PWD=$(pwd)
+###
+# Export the `FOUNDATION` environment variable.
+# Copy this file as $FOUNDATION-env.
+# When running scripts in this directory will load the $FOUNDATION-env instead of this file.
+##
 
-source $PWD/scripts/releases
-
-##### START FILLING FROM HERE #####
 export CONCOURSE_RELEASES_LATEST=true
 
 export BOSH_ALIAS=concourse-bosh
@@ -82,21 +79,7 @@ export TLS_BIND_PORT=443
 export RESERVED_IPS="[\"172.16.0.0-172.16.1.30\"]"
 export CLOUD_CONFIG_STATIC_IPS=172.16.1.32-172.16.1.41 # Block all the static IP's used here in this deployment
 
-UNAME=$(uname)
-if [[ "$UNAME" == "Darwin" && "$CREDENTIAL_MANAGER" == "vault" ]]; then
-  networksetup -setdnsservers Wi-Fi $DNS_SERVERS
-fi
-
 export HTTP_PROXY_REQUIRED=false # true or false
 export HTTP_PROXY=
 export HTTPS_PROXY=
 export NO_PROXY_PATTERN='10.198.159.{0..127}'
-
-export http_proxy=$HTTP_PROXY
-export https_proxy=$HTTPS_PROXY
-
-if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
-  printf -v NO_PROXY '%s,' $(eval echo $NO_PROXY_PATTERN)
-  export NO_PROXY
-  export no_proxy=$NO_PROXY
-fi
