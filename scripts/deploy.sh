@@ -79,7 +79,7 @@ $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $PWD/cloud-configs/cloud-config.
 if [ ! -d "$PWD/concourse-deployment" ]; then
   git clone https://github.com/concourse/concourse-deployment
 else
-  cd $PWD/bosh-deployment && git pull && cd ..
+  cd $PWD/concourse-deployment && git pull && cd ..
 fi
 
 if [[ ! -f "bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz" ]]; then
