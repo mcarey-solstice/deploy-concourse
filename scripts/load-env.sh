@@ -9,7 +9,7 @@
 #   source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load-env.sh
 ##
 
-declare -r __BASEDIR__="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+__BASEDIR__="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 export BOSH_CMD=bosh
 export VAULT_CMD=vault
