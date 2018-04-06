@@ -1,11 +1,13 @@
 #!/bin/bash -e
 
-if [[ "$FOUNDATION" != "" ]]; then
-  echo "sourcing $PWD/scripts/$FOUNDATION-env...."
-  source $PWD/scripts/$FOUNDATION-env
+export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ "$ENV" != "" ]]; then
+  echo "sourcing $DIR/$ENV-env...."
+  source $DIR/$ENV-env
 else
-  echo "sourcing $PWD/env...."
-  source $PWD/scripts/env
+  echo "sourcing $DIR/.env...."
+  source $DIR/.env
 fi
 
 export BOSH_CLIENT=admin

@@ -1,11 +1,13 @@
 #!/bin/bash -e
 
-if [[ "$FOUNDATION" != "" ]]; then
-  echo "sourcing $PWD/scripts/$FOUNDATION-env...."
-  source $PWD/scripts/$FOUNDATION-env
+export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ "$ENV" != "" ]]; then
+  echo "sourcing $DIR/$ENV-env...."
+  source $DIR/$ENV-env
 else
-  echo "sourcing $PWD/env...."
-  source $PWD/scripts/env
+  echo "sourcing $DIR/.env...."
+  source $DIR/.env
 fi
 
 mkdir -p $BOSH_ALIAS
@@ -74,7 +76,8 @@ $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $PWD/cloud-configs/cloud-config.
   -v dns_servers="$DNS_SERVERS" \
   -v reserved_ips="$RESERVED_IPS" \
   -v static_ips="$CLOUD_CONFIG_STATIC_IPS" \
-  -v vcenter_rp="$VCENTER_RESOURCE_POOL"
+  -v vcenter_rp="$VCENTER_RESOURCE_POOL" \
+  -v vm_disk_type="$VM_DISK_TYPE"
 
 if [ ! -d "$PWD/concourse-deployment" ]; then
   git clone https://github.com/concourse/concourse-deployment

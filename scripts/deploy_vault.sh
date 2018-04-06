@@ -12,6 +12,7 @@ if [[ ! -z "$VAULT_SERVER_CERT_FILENAME" ]]; then
 else
   echo "Generating cert for Vault"
 fi
+
 $BOSH_CMD -e $BOSH_ALIAS -n -d $VAULT_CMD deploy $PWD/vault/vault.yml \
   -v VAULT_AZ_NAME=$VAULT_AZ_NAME \
   -v VAULT_NW_NAME=$VAULT_NW_NAME \
