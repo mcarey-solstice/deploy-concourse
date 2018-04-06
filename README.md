@@ -12,12 +12,12 @@ Download the following CLI's:
 Usage:
 ------
 
-- Create a copy of the template `env` file and name it as `dev-env` or `[FOUNDATION]-env`
--	Fill out the `[FOUNDATION]-env` file
+- Create a copy of the template `env-template` file and name it as `dev-env` or `[ENV]-env`
+-	Fill out the `[ENV]-env` file
 - Specify the credential manager you want to use with your concourse deployment
--	Use blocks of IP's for all the static_ips in the `[FOUNDATION]-env` file, ex: 192.168.0.10-192.16.0.12
--	To deploy, execute `FOUNDATION=dev ./scripts/deploy.sh`, where `dev` is the name of the foundation
--	To wipe the environment, execute `FOUNDATION=dev ./scripts/delete.sh`
+-	Use blocks of IP's for all the static_ips in the `[ENV]-env` file, ex: 192.168.0.10-192.16.0.12
+-	To deploy, execute `ENV=dev ./scripts/deploy.sh`, where `dev` is the name of the foundation
+-	To wipe the environment, execute `ENV=dev ./scripts/delete.sh`
 
 Limitations:
 ------------
@@ -25,7 +25,7 @@ Limitations:
 - All configuration is currently for vSphere. Should be easy to swap them out to support the IaaS you need
 -	Currently doesn't allow setting multiple DNS Servers and since static IP's for all the components accessible by developers
 -	Hasn't enabled ssh access to bosh
--	Tested on Mac :)
+-	Tested on OSX/Linux :)
 
 Caution:
 --------
