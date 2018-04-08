@@ -1,14 +1,7 @@
 #!/bin/bash -e
 
-export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-if [[ "$ENV" != "" ]]; then
-  echo "sourcing $DIR/$ENV-env...."
-  source $DIR/$ENV-env
-else
-  echo "sourcing $DIR/.env...."
-  source $DIR/.env
-fi
+source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load-env.sh
+source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/releases
 
 export BOSH_CLIENT=admin
 export BOSH_CLIENT_SECRET=`$BOSH_CMD int $PWD/$BOSH_ALIAS/creds.yml --path /admin_password`

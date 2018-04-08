@@ -1,11 +1,9 @@
 #!/bin/bash -e
 
-if [[ "$ENV" != "" ]]; then
-  echo "sourcing $DIR/$ENV-env...."
-  source $PWD/scripts/$ENV-env
-else
-  echo "sourcing $DIR/.env...."
-  source $PWD/scripts/.env
+if [ -z "$__BASEDIR__" ]; then
+  __DIR__="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  source $__DIR__/scripts/load-env.sh
 fi
 
 export BOSH_CLIENT=admin
