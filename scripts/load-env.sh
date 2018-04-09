@@ -29,8 +29,9 @@ else
 fi
 
 UNAME=$(uname)
-if [[ "$UNAME" == "Darwin" && "$CREDENTIAL_MANAGER" == "vault" ]]; then
-  networksetup -setdnsservers Wi-Fi $DNS_SERVERS
+if [[ "$UNAME" == "Darwin" ]]; then
+  DNS_SERVERS_LIST=( $(echo "$DNS_SERVERS" | $JQ_CMD -r '.[]') )
+  networksetup -setdnsservers Wi-Fi $DNS_SERVERS_LIST
 fi
 
 export http_proxy=$HTTP_PROXY
