@@ -5,6 +5,13 @@ export VSPHERE_CPI_RELEASE_REPOSITORY=cloudfoundry-incubator/bosh-vsphere-cpi-re
 export OS_CONF_RELEASE_REPOSITORY=cloudfoundry/os-conf-release
 export UAA_RELEASE_REPOSITORY=cloudfoundry/uaa-release
 export CREDHUB_RELEASE_REPOSITORY=pivotal-cf/credhub-release
+export CONCOURSE_RELEASE_REPOSITORY=concourse/concourse
+export GARDEN_RUNC_RELEASE_REPOSITORY=cloudfoundry/garden-runc-release
+export POSTGRES_RELEASE_REPOSITORY=cloudfoundry/postgres-release
+export CONSUL_RELEASE_REPOSITORY=cloudfoundry-community/consul-boshrelease
+export VAULT_RELEASE_REPOSITORY=cloudfoundry-community/vault-boshrelease
+
+export STEMCELL_NAME=bosh-vsphere-esxi-ubuntu-trusty-go_agent
 
 function getReleaseDetails() {
   PAYLOAD=$(curl -s --fail "https://bosh.io/api/v1/releases/github.com/$1" | jq '.[0]')
@@ -43,14 +50,34 @@ export UAA_RELEASE_VERSION=$version
 export UAA_RELEASE_SHA=$sha1
 export UAA_RELEASE_URL=$release_url
 
+read version sha1 release_url < <(getReleaseDetails $CONCOURSE_RELEASE_REPOSITORY)
+export CONCOURSE_RELEASE_VERSION=$version
+export CONCOURSE_RELEASE_SHA=$sha1
+export CONCOURSE_RELEASE_URL=https://bosh.io/d/github.com/concourse/concourse?v=$CONCOURSE_RELEASE_VERSION
+
+read version sha1 release_url < <(getReleaseDetails $GARDEN_RUNC_RELEASE_REPOSITORY)
+export GARDEN_RUNC_RELEASE_VERSION=$version
+export GARDEN_RUNC_RELEASE_SHA=$sha1
+export GARDEN_RUNC_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=$GARDEN_RUNC_RELEASE_VERSION
+
+read version sha1 release_url < <(getReleaseDetails $POSTGRES_RELEASE_REPOSITORY)
+export POSTGRES_RELEASE_VERSION=$version
+export POSTGRES_RELEASE_SHA=$sha1
+export POSTGRES_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=$POSTGRES_RELEASE_VERSION
+
 read version sha1 release_url < <(getReleaseDetails $CREDHUB_RELEASE_REPOSITORY)
-export CREDHUB_RELEASE_VERSION=$version
+export CREDHUB_RELEASE_VERSION=1.8.1
 export CREDHUB_RELEASE_URL=https://bosh.io/d/github.com/pivotal-cf/credhub-release?v=$CREDHUB_RELEASE_VERSION
 
-export CONSUL_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease
-export VAULT_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease
+read version sha1 release_url < <(getReleaseDetails $CONSUL_RELEASE_REPOSITORY)
+export CONSUL_RELEASE_VERSION=$version
+export CONSUL_RELEASE_SHA=$sha1
+export CONSUL_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease?v=$CONSUL_RELEASE_VERSION
 
-export STEMCELL_NAME=bosh-vsphere-esxi-ubuntu-trusty-go_agent
+read version sha1 release_url < <(getReleaseDetails $VAULT_RELEASE_REPOSITORY)
+export VAULT_RELEASE_VERSION=$version
+export VAULT_RELEASE_SHA=$sha1
+export VAULT_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease?v=$VAULT_RELEASE_VERSION
 
 read version sha1 stemcell_url < <(getStemcellDetails $STEMCELL_NAME)
 export SC_VERSION=$version

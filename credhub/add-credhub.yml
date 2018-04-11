@@ -101,12 +101,12 @@
   path: /releases/-
   value:
     name: uaa
-    version: latest
+    version: ((uaa_release_version))
 - type: replace
   path: /releases/-
   value:
     name: credhub
-    version: latest
+    version: ((credhub_release_version))
 
 # update DB instance to include credhub and uaa databases
 - type: replace

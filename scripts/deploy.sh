@@ -96,7 +96,8 @@ if [[ "$CREDENTIAL_MANAGER" == "credhub" ]]; then
         -o $PWD/ops-files/credhub-tls-cert-verify.yml"
 
   CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v insecure_skip_verify=$INSECURE_SKIP_VERIFY \
-      -v concourse_path_prefix=$CONCOURSE_PATH_PREFIX"
+      -v concourse_path_prefix=$CONCOURSE_PATH_PREFIX -v uaa_release_version=$UAA_RELEASE_VERSION\
+      -v credhub_release_version=$CREDHUB_RELEASE_VERSION"
 
 elif [[ "$CREDENTIAL_MANAGER" == "vault" ]]; then
   echo "Credential manager selected is vault"
@@ -120,6 +121,10 @@ fi
 CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/ops-files/concourse-versions.yml"
 if [[ "$CONCOURSE_RELEASES_LATEST" == "false" ]]; then
   CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/concourse-deployment/versions.yml"
+else
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release $CONCOURSE_RELEASE_URL
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release $GARDEN_RUNC_RELEASE_URL
+  $BOSH_CMD -e $BOSH_ALIAS -n upload-release $POSTGRES_RELEASE_URL
 fi
 
 HTTP_PROXY_OPS_FILES=" "
@@ -131,13 +136,6 @@ if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
 fi
 
 #### CONCOURSE DEPLOYMENT START #####
-
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/concourse/concourse
-
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/garden-runc-release
-
-$BOSH_CMD -e $BOSH_ALIAS -n upload-release https://bosh.io/d/github.com/cloudfoundry/postgres-release
-
 $BOSH_CMD -e $BOSH_ALIAS -n deploy $PWD/concourse-deployment/cluster/concourse.yml \
   -d concourse \
   $CONCOURSE_VERSIONS_TO_DEPLOY \
