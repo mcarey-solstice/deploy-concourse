@@ -56,7 +56,7 @@ export CONCOURSE_RELEASE_SHA=$sha1
 export CONCOURSE_RELEASE_URL=https://bosh.io/d/github.com/concourse/concourse?v=$CONCOURSE_RELEASE_VERSION
 
 read version sha1 release_url < <(getReleaseDetails $GARDEN_RUNC_RELEASE_REPOSITORY)
-export GARDEN_RUNC_RELEASE_VERSION=$version
+export GARDEN_RUNC_RELEASE_VERSION=1.12.1
 export GARDEN_RUNC_RELEASE_SHA=$sha1
 export GARDEN_RUNC_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=$GARDEN_RUNC_RELEASE_VERSION
 
@@ -66,7 +66,7 @@ export POSTGRES_RELEASE_SHA=$sha1
 export POSTGRES_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=$POSTGRES_RELEASE_VERSION
 
 read version sha1 release_url < <(getReleaseDetails $CREDHUB_RELEASE_REPOSITORY)
-export CREDHUB_RELEASE_VERSION=1.8.1
+export CREDHUB_RELEASE_VERSION=1.8.0
 export CREDHUB_RELEASE_URL=https://bosh.io/d/github.com/pivotal-cf/credhub-release?v=$CREDHUB_RELEASE_VERSION
 
 read version sha1 release_url < <(getReleaseDetails $CONSUL_RELEASE_REPOSITORY)

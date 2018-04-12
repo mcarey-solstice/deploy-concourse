@@ -118,10 +118,13 @@ else
   echo "Skipping integration with any credential manager"
 fi
 
-CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/ops-files/concourse-versions.yml"
 if [[ "$CONCOURSE_RELEASES_LATEST" == "false" ]]; then
   CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/concourse-deployment/versions.yml"
 else
+  CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/ops-files/concourse-versions.yml \
+    -v concourse_release_version=$CONCOURSE_RELEASE_VERSION \
+    -v garden_runc_release_version=$GARDEN_RUNC_RELEASE_VERSION \
+    -v postgres_release_version=$POSTGRES_RELEASE_VERSION"
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release $CONCOURSE_RELEASE_URL
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release $GARDEN_RUNC_RELEASE_URL
   $BOSH_CMD -e $BOSH_ALIAS -n upload-release $POSTGRES_RELEASE_URL
