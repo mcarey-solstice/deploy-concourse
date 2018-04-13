@@ -9,11 +9,7 @@
 #   source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load-env.sh
 ##
 
-if [ -z "$__DIR__" ]; then
-  __BASEDIR__="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-else
-  __BASEDIR__="$__DIR__"
-fi
+__DIR__=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
 
 export BOSH_CMD=bosh
 export VAULT_CMD=vault
@@ -21,11 +17,11 @@ export JQ_CMD=jq
 export CREDHUB_CMD=credhub
 
 if [[ "$ENV" != "" ]]; then
-  echo "sourcing $__BASEDIR__/scripts/$ENV-env...."
-  source "$__BASEDIR__"/scripts/$ENV-env
+  echo "sourcing $__DIR__/$ENV-env...."
+  source "$__DIR__"/$ENV-env
 else
-  echo "sourcing $__BASEDIR__/.env...."
-  source "$__BASEDIR__"/scripts/.env
+  echo "sourcing $__DIR__/.env...."
+  source "$__DIR__"/.env
 fi
 
 UNAME=$(uname)
