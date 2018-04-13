@@ -9,7 +9,7 @@ source $__DIR__/releases
 mkdir -p $__BASEDIR__/$BOSH_ALIAS
 
 if [ ! -d "$__BASEDIR__/bosh-deployment" ]; then
-  git clone https://github.com/cloudfoundry/bosh-deployment
+  git clone https://github.com/cloudfoundry/bosh-deployment $__BASEDIR__/bosh-deployment
 else
   echo "pulling bosh-deployment repo"
   cd $__BASEDIR__/bosh-deployment && git pull && cd -
@@ -18,7 +18,7 @@ fi
 HTTP_PROXY_OPS_FILES=" "
 HTTP_PROXY_VARS=" "
 if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
-  HTTP_PROXY_OPS_FILES=" -o bosh-deployment/misc/proxy.yml "
+  HTTP_PROXY_OPS_FILES=" -o $__BASEDIR__/bosh-deployment/misc/proxy.yml "
   HTTP_PROXY_VARS=" -v http_proxy=$HTTP_PROXY \
         -v https_proxy=$HTTPS_PROXY \
         -v no_proxy=$NO_PROXY "
@@ -77,7 +77,7 @@ $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $__BASEDIR__/cloud-configs/cloud
   -v vm_disk_type="$VM_DISK_TYPE"
 
 if [ ! -d "$__BASEDIR__/concourse-deployment" ]; then
-  git clone https://github.com/concourse/concourse-deployment
+  git clone https://github.com/concourse/concourse-deployment $__BASEDIR__/concourse-deployment
 else
   cd $__BASEDIR__/concourse-deployment && git pull && cd -
 fi
@@ -137,7 +137,7 @@ fi
 HTTP_PROXY_OPS_FILES=" "
 HTTP_PROXY_VARS=" "
 if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
-  HTTP_PROXY_OPS_FILES=" -o concourse-deployment/cluster/operations/http-proxy.yml "
+  HTTP_PROXY_OPS_FILES=" -o $__BASEDIR__/concourse-deployment/cluster/operations/http-proxy.yml "
   HTTP_PROXY_VARS=" -v proxy_url=$HTTP_PROXY \
     -v no_proxy=[$NO_PROXY] "
 fi
