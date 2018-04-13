@@ -1,11 +1,14 @@
 #!/bin/bash -e
 
-source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load-env.sh
-source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/releases
+__DIR__=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
+__BASEDIR__=$(dirname $__DIR__)
+
+source $__DIR__/load-env.sh
+source $__DIR__/releases
 
 export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=`$BOSH_CMD int $PWD/$BOSH_ALIAS/creds.yml --path /admin_password`
-$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int $PWD/$BOSH_ALIAS/creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
+export BOSH_CLIENT_SECRET=`$BOSH_CMD int $__BASEDIR__/$BOSH_ALIAS/creds.yml --path /admin_password`
+$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int $__BASEDIR__/$BOSH_ALIAS/creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
 
 $BOSH_CMD delete-deployment -e $BOSH_ALIAS -d nexus -n --force
 
@@ -19,15 +22,15 @@ fi
 
 $BOSH_CMD -e $BOSH_ALIAS clean-up --all -n
 
-$BOSH_CMD delete-env $PWD/bosh-deployment/bosh.yml \
-  --state=$PWD/$BOSH_ALIAS/state.json \
-  --vars-store=$PWD/$BOSH_ALIAS/creds.yml \
-  -o $PWD/bosh-deployment/vsphere/cpi.yml \
-  -o $PWD/bosh-deployment/vsphere/resource-pool.yml \
-  -o $PWD/bosh-deployment/jumpbox-user.yml \
-  -o $PWD/bosh-deployment/uaa.yml \
-  -o $PWD/ops-files/versions.yml \
-  -o $PWD/ops-files/dns.yml \
+$BOSH_CMD delete-env $__BASEDIR__/bosh-deployment/bosh.yml \
+  --state=$__BASEDIR__/$BOSH_ALIAS/state.json \
+  --vars-store=$__BASEDIR__/$BOSH_ALIAS/creds.yml \
+  -o $__BASEDIR__/bosh-deployment/vsphere/cpi.yml \
+  -o $__BASEDIR__/bosh-deployment/vsphere/resource-pool.yml \
+  -o $__BASEDIR__/bosh-deployment/jumpbox-user.yml \
+  -o $__BASEDIR__/bosh-deployment/uaa.yml \
+  -o $__BASEDIR__/ops-files/versions.yml \
+  -o $__BASEDIR__/ops-files/dns.yml \
   -v director_name=$BOSH_ALIAS \
   -v internal_cidr=$NETWORK_CIDR \
   -v internal_gw=$NETWORK_GATEWAY \
@@ -55,7 +58,7 @@ $BOSH_CMD delete-env $PWD/bosh-deployment/bosh.yml \
   -v uaa_release_url=$UAA_RELEASE_URL \
   -v uaa_release_sha=$UAA_RELEASE_SHA
 
-rm -rf $PWD/$BOSH_ALIAS
+rm -rf $__BASEDIR__/$BOSH_ALIAS
 
 if [[ ! -f "bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz" ]]; then
   rm -f bosh-stemcell-*.tgz

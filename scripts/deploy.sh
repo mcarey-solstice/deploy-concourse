@@ -1,14 +1,18 @@
 #!/bin/bash -e
 
-source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load-env.sh
-source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/releases
+__DIR__=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
+__BASEDIR__=$(dirname $__DIR__)
 
-mkdir -p $BOSH_ALIAS
+source $__DIR__/load-env.sh
+source $__DIR__/releases
 
-if [ ! -d "$PWD/bosh-deployment" ]; then
+mkdir -p $__BASEDIR__/$BOSH_ALIAS
+
+if [ ! -d "$__BASEDIR__/bosh-deployment" ]; then
   git clone https://github.com/cloudfoundry/bosh-deployment
 else
-  cd $PWD/bosh-deployment && git pull && cd ..
+  echo "pulling bosh-deployment repo"
+  cd $__BASEDIR__/bosh-deployment && git pull && cd -
 fi
 
 HTTP_PROXY_OPS_FILES=" "
@@ -20,15 +24,15 @@ if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
         -v no_proxy=$NO_PROXY "
 fi
 
-$BOSH_CMD create-env $PWD/bosh-deployment/bosh.yml \
-  --state=$PWD/$BOSH_ALIAS/state.json \
-  --vars-store=$PWD/$BOSH_ALIAS/creds.yml \
-  -o $PWD/bosh-deployment/vsphere/cpi.yml \
-  -o $PWD/bosh-deployment/vsphere/resource-pool.yml \
-  -o $PWD/bosh-deployment/jumpbox-user.yml \
-  -o $PWD/bosh-deployment/uaa.yml \
-  -o $PWD/ops-files/versions.yml \
-  -o $PWD/ops-files/dns.yml \
+$BOSH_CMD create-env $__BASEDIR__/bosh-deployment/bosh.yml \
+  --state=$__BASEDIR__/$BOSH_ALIAS/state.json \
+  --vars-store=$__BASEDIR__/$BOSH_ALIAS/creds.yml \
+  -o $__BASEDIR__/bosh-deployment/vsphere/cpi.yml \
+  -o $__BASEDIR__/bosh-deployment/vsphere/resource-pool.yml \
+  -o $__BASEDIR__/bosh-deployment/jumpbox-user.yml \
+  -o $__BASEDIR__/bosh-deployment/uaa.yml \
+  -o $__BASEDIR__/ops-files/versions.yml \
+  -o $__BASEDIR__/ops-files/dns.yml \
   -v director_name="$BOSH_ALIAS" \
   -v internal_cidr="$NETWORK_CIDR" \
   -v internal_gw="$NETWORK_GATEWAY" \
@@ -57,9 +61,9 @@ $BOSH_CMD create-env $PWD/bosh-deployment/bosh.yml \
   -v uaa_release_sha="$UAA_RELEASE_SHA" \
   $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
 
-source $PWD/scripts/bosh-login.sh
+source $__BASEDIR__/scripts/bosh-login.sh
 
-$BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $PWD/cloud-configs/cloud-config.yml \
+$BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $__BASEDIR__/cloud-configs/cloud-config.yml \
   -v az_name="$CONCOURSE_AZ_NAME" \
   -v nw_name="$CONCOURSE_NW_NAME" \
   -v vcenter_cluster="$VCENTER_CLUSTER_NAME" \
@@ -72,10 +76,10 @@ $BOSH_CMD -e $BOSH_ALIAS -n update-cloud-config $PWD/cloud-configs/cloud-config.
   -v vcenter_rp="$VCENTER_RESOURCE_POOL" \
   -v vm_disk_type="$VM_DISK_TYPE"
 
-if [ ! -d "$PWD/concourse-deployment" ]; then
+if [ ! -d "$__BASEDIR__/concourse-deployment" ]; then
   git clone https://github.com/concourse/concourse-deployment
 else
-  cd $PWD/concourse-deployment && git pull && cd ..
+  cd $__BASEDIR__/concourse-deployment && git pull && cd -
 fi
 
 if [[ ! -f "bosh-stemcell-$SC_VERSION-vsphere-esxi-ubuntu-trusty-go_agent.tgz" ]]; then
@@ -90,10 +94,10 @@ CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS=" "
 
 if [[ "$CREDENTIAL_MANAGER" == "credhub" ]]; then
   echo "Credential manager selected is credhub"
-  source $PWD/scripts/deploy_credhub.sh
+  source $__BASEDIR__/scripts/deploy_credhub.sh
 
-  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/credhub/add-credhub.yml \
-        -o $PWD/ops-files/credhub-tls-cert-verify.yml"
+  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $__BASEDIR__/credhub/add-credhub.yml \
+        -o $__BASEDIR__/ops-files/credhub-tls-cert-verify.yml"
 
   CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v insecure_skip_verify=$INSECURE_SKIP_VERIFY \
       -v concourse_path_prefix=$CONCOURSE_PATH_PREFIX -v uaa_release_version=$UAA_RELEASE_VERSION\
@@ -101,12 +105,12 @@ if [[ "$CREDENTIAL_MANAGER" == "credhub" ]]; then
 
 elif [[ "$CREDENTIAL_MANAGER" == "vault" ]]; then
   echo "Credential manager selected is vault"
-  source $PWD/scripts/deploy_vault.sh
+  source $__BASEDIR__/scripts/deploy_vault.sh
 
-  CLIENT_TOKEN=$(cat $PWD/$BOSH_ALIAS/create_token_response.json | $JQ_CMD .auth.client_token | tr -d '"')
+  CLIENT_TOKEN=$(cat $__BASEDIR__/$BOSH_ALIAS/create_token_response.json | $JQ_CMD .auth.client_token | tr -d '"')
 
-  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $PWD/vault/add-vault.yml \
-        -o $PWD/ops-files/vault-tls-cert-verify.yml"
+  CONCOURSE_DEPLOYMENT_OPS_FILES="-o $__BASEDIR__/vault/add-vault.yml \
+        -o $__BASEDIR__/ops-files/vault-tls-cert-verify.yml"
   CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS="-v vault_addr=$VAULT_ADDR \
       -v client_token=$CLIENT_TOKEN \
       -v concourse_path_prefix=$CONCOURSE_PATH_PREFIX \
@@ -119,9 +123,9 @@ else
 fi
 
 if [[ "$CONCOURSE_RELEASES_LATEST" == "false" ]]; then
-  CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/concourse-deployment/versions.yml"
+  CONCOURSE_VERSIONS_TO_DEPLOY="-o $__BASEDIR__/concourse-deployment/versions.yml"
 else
-  CONCOURSE_VERSIONS_TO_DEPLOY="-o $PWD/ops-files/concourse-versions.yml \
+  CONCOURSE_VERSIONS_TO_DEPLOY="-o $__BASEDIR__/ops-files/concourse-versions.yml \
     -v concourse_release_version=$CONCOURSE_RELEASE_VERSION \
     -v garden_runc_release_version=$GARDEN_RUNC_RELEASE_VERSION \
     -v postgres_release_version=$POSTGRES_RELEASE_VERSION"
@@ -139,15 +143,15 @@ if [[ "$HTTP_PROXY_REQUIRED" == "true" ]]; then
 fi
 
 #### CONCOURSE DEPLOYMENT START #####
-$BOSH_CMD -e $BOSH_ALIAS -n deploy $PWD/concourse-deployment/cluster/concourse.yml \
+$BOSH_CMD -e $BOSH_ALIAS -n deploy $__BASEDIR__/concourse-deployment/cluster/concourse.yml \
   -d concourse \
   $CONCOURSE_VERSIONS_TO_DEPLOY \
-  -o $PWD/ops-files/nws-azs.yml \
-  -o $PWD/concourse-deployment/cluster/operations/scale.yml \
-  -o $PWD/concourse-deployment/cluster/operations/basic-auth.yml \
-  -o $PWD/concourse-deployment/cluster/operations/tls.yml \
-  -o $PWD/ops-files/add-tls-vars.yml \
-  --vars-store=$PWD/$BOSH_ALIAS/concourse-vars.yml \
+  -o $__BASEDIR__/ops-files/nws-azs.yml \
+  -o $__BASEDIR__/concourse-deployment/cluster/operations/scale.yml \
+  -o $__BASEDIR__/concourse-deployment/cluster/operations/basic-auth.yml \
+  -o $__BASEDIR__/concourse-deployment/cluster/operations/tls.yml \
+  -o $__BASEDIR__/ops-files/add-tls-vars.yml \
+  --vars-store=$__BASEDIR__/$BOSH_ALIAS/concourse-vars.yml \
   -v atc_basic_auth.username=$CONCOURSE_ADMIN_USERNAME \
   -v atc_basic_auth.password=$CONCOURSE_ADMIN_PASSWORD \
   -v tls_bind_port=$TLS_BIND_PORT \

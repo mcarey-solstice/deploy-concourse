@@ -1,12 +1,10 @@
 #!/bin/bash -e
 
-if [ -z "$__BASEDIR__" ]; then
-  __DIR__="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+__DIR__=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
+source $__DIR__/load-env.sh
 
-  source $__DIR__/scripts/load-env.sh
-fi
-
+__BASEDIR__=$(dirname $__DIR__)
 export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=`$BOSH_CMD int $PWD/$BOSH_ALIAS/creds.yml --path /admin_password`
+export BOSH_CLIENT_SECRET=`$BOSH_CMD int $__BASEDIR__/$BOSH_ALIAS/creds.yml --path /admin_password`
 
-$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int $PWD/$BOSH_ALIAS/creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
+$BOSH_CMD -e $BOSH_IP --ca-cert <($BOSH_CMD int $__BASEDIR__/$BOSH_ALIAS/creds.yml --path /director_ssl/ca) alias-env $BOSH_ALIAS
