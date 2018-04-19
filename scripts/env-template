@@ -6,7 +6,21 @@
 # When running scripts in this directory will load the $FOUNDATION-env instead of this file.
 ##
 
-export CONCOURSE_RELEASES_LATEST=true
+###
+# You can set the versions to force certain versions of each release or stemcell.  If left blank, the latest will be used.
+##
+# export BOSH_RELEASE_VERSION=
+# export VSPHERE_CPI_RELEASE_VERSION=
+# export OS_CONF_RELEASE_VERSION=
+# export UAA_RELEASE_VERSION=
+export CREDHUB_RELEASE_VERSION=1.7.2
+# export CONCOURSE_RELEASE_VERSION=
+export GARDEN_RUNC_RELEASE_VERSION=1.12.1
+# export POSTGRES_RELEASE_VERSION=
+# export CONSUL_RELEASE_VERSION=
+# export VAULT_RELEASE_VERSION=
+# export UBUNTU_STEMCELL_VERSION=
+##
 
 export BOSH_ALIAS=concourse-bosh
 

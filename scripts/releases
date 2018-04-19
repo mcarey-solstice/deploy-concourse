@@ -1,5 +1,14 @@
 #!/bin/bash
 
+## Defaults
+
+export BOSH_API="https://bosh.io/api/v1"
+export BOSH_DOWNLOADS="https://bosh.io/d"
+export DEFAULT_RELEASES_BASE_URL="$BOSH_API/releases/github.com"
+export DEFAULT_STEMCELL_BASE_URL="$BOSH_API/stemcells"
+
+## Repositories
+
 export BOSH_RELEASE_REPOSITORY=cloudfoundry/bosh
 export VSPHERE_CPI_RELEASE_REPOSITORY=cloudfoundry-incubator/bosh-vsphere-cpi-release
 export OS_CONF_RELEASE_REPOSITORY=cloudfoundry/os-conf-release
@@ -11,75 +20,402 @@ export POSTGRES_RELEASE_REPOSITORY=cloudfoundry/postgres-release
 export CONSUL_RELEASE_REPOSITORY=cloudfoundry-community/consul-boshrelease
 export VAULT_RELEASE_REPOSITORY=cloudfoundry-community/vault-boshrelease
 
-export STEMCELL_NAME=bosh-vsphere-esxi-ubuntu-trusty-go_agent
+export UBUNTU_STEMCELL_REPOSITORY=bosh-vsphere-esxi-ubuntu-trusty-go_agent
 
-function getReleaseDetails() {
-  PAYLOAD=$(curl -s --fail "https://bosh.io/api/v1/releases/github.com/$1" | jq '.[0]')
+## Helpers
+
+###
+# Logs output for debugging purposes.
+#
+# Warning:
+#   Sends all output to stderr
+##
+function _log() {
+  echo "[DEBUG][releases] $@" >&2
+}
+
+###
+# Uppercases a string.  If the bash version is 4 or greater, the ${var^^} builtin will be used; otherwise, awk is used.
+#
+# Environment:
+#   BASH_VERSION {string} Provided from bash.
+#
+# Echos:
+#   The string in uppercase.
+#
+# Returns:
+#   0
+##
+function _to_upper() {
+  local _var="$1"
+  if [ "${BASH_VERSION:0:1}" = "4" ]; then
+    echo "${_var^^}"
+  else
+    echo "${_var}" | awk '{print toupper($0)}'
+  fi
+}
+
+###
+# Checks for a default value.  If no default is available, empty string is echoed.
+#
+# Warning:
+#   The only defaults are currently via the url property.
+#
+# Environment:
+#   DEFAULT_RELEASES_BASE_URL {string} The default base url for releases
+#   DEFAULT_STEMCELL_BASE_URL {string} The default base url for stemcells
+#
+# Parameters:
+#   1 (product) {string} The product identifier for variables
+#   2 (type) {string:release|stemcell} The type of product we are looking for
+#   3 (property) {string:url|version|sha1} The property that is being looked for
+#
+# Echos:
+#   The default for the provided input.  Empty string if no default can be determined.
+#
+# Returns:
+#   0 Success
+#   2 The propery is url, but the type is not recognized as release or stemcell
+##
+function _getDefault() {
+  local _product="$1"
+  local _type="$2"
+  local _property="$3"
+  local _var
+
+  if [ "$_property" = "url" ]; then
+    case "$_type" in
+      release )
+        _var="$( _to_upper "${_product}_RELEASE_REPOSITORY" )"
+        echo "${DEFAULT_RELEASES_BASE_URL}/${!_var}"
+        ;;
+      stemcell )
+        _var="$( _to_upper "${_product}_STEMCELL_REPOSITORY" )"
+        echo "${DEFAULT_STEMCELL_BASE_URL}/${!_var}"
+        ;;
+      * )
+        echo "Error: Unknown type: $_type" >&2
+        return 2
+    esac
+  fi
+
+  return 0
+}
+
+###
+# Checks if a value has already been provided or its default.  If no default is available, empty string is echoed.
+#
+# Parameters:
+#   1 (product) {string} The product identifier for variables
+#   2 (type) {string:release|stemcell} The type of product we are looking for
+#   3 (property) {string:url|version|sha1} The property that is being looked for
+#
+# Echos:
+#   The value already set OR the default for the provided input.  Empty string if no default can be determined.
+#
+# Returns:
+#   0
+##
+function _get() {
+  local _product="$1"
+  local _type="$2"
+  local _property="$3"
+
+  local _var=$( _to_upper "${_product}_${_type}_${_property}" )
+  if [ -z "${!_var+x}" -a -n "${!_var}" ]; then
+    _log "Found a variable: $_var with value ${!_var}"
+    # We already have a configuration
+    echo "${!_var}"
+  else
+    _log "Using default for $_var"
+    # We will use the default
+    _getDefault $@
+  fi
+}
+
+###
+# Grabs the metadata for a product.  If the version has been specified via environment variable, that version of the product will be returned rather than the latest.
+#
+# Parameters:
+#   1 (product) {string} The product identifier for variables
+#   2 (type) {string:release|stemcell} The type of product we are looking for
+#
+# Echos:
+#   "$version $sha1 $url" for the product
+#
+# Returns:
+#   0 Success
+#   * Errors from curl
+##
+function _getDetails() {
+  local ENDPOINT JSON PAYLOAD VERSION SHA1 RELEASE_URL
+  local version
+
+  local _product="$1"
+  local _type="$2"
+
+  local _url="$( _get "$_product" "$_type" url )"
+  local _version="$( _get "$_product" "$_type" version )"
+
+  _log "Url: $_url"
+
+  JSON=$(curl -s --fail "$_url?all=1")
+  if [ -z "${_version}" ]; then
+    PAYLOAD="$( echo "$JSON" | jq '.[0]' )"
+  else
+    PAYLOAD="$( echo "$JSON" | jq "select(.version == \"$_version\")" )"
+  fi
+  # _log "Payload: $PAYLOAD"
+
   VERSION=$(echo "$PAYLOAD" | jq -r '.version')
-  SHA1=$(echo "$PAYLOAD" | jq -r '.sha1')
-  RELEASE_URL=$(echo "$PAYLOAD" | jq -r '.url')
 
+  local _prefix=""
+  if [ "$_type" = "stemcell" ]; then
+    _prefix=".regular"
+  fi
+
+  SHA1=$(echo "$PAYLOAD" | jq -r "$_prefix.sha1")
+  RELEASE_URL=$(echo "$PAYLOAD" | jq -r "$_prefix.url")
+
+  _log "{ \"version\": \"$VERSION\", \"sha1\": \"$SHA1\", \"url\": \"$RELEASE_URL\" }"
   echo "$VERSION" "$SHA1" "$RELEASE_URL"
 }
 
-function getStemcellDetails() {
-  PAYLOAD=$(curl -s --fail "https://bosh.io/api/v1/stemcells/$1?all=1" | jq '.[0]')
-  VERSION=$(echo "$PAYLOAD" | jq -r '.version')
-  SHA1=$(echo "$PAYLOAD" | jq -r '.regular.sha1')
-  RELEASE_URL=$(echo "$PAYLOAD" | jq -r '.regular.url')
-  echo "$VERSION" "$SHA1" "$RELEASE_URL"
+###
+# Wraps _getDetails by passing 'release' as the second paramter.
+#
+# See:
+#   _getDetails
+##
+function _getReleaseDetails() {
+  _getDetails "$1" release
 }
 
-read version sha1 release_url < <(getReleaseDetails $BOSH_RELEASE_REPOSITORY)
-export BOSH_RELEASE_VERSION=$version
-export BOSH_RELEASE_SHA=$sha1
-export BOSH_RELEASE_URL=$release_url
+###
+# Wraps _getDetails by passing 'stemcell' as the second paramter.
+#
+# See:
+#   _getDetails
+##
+function _getStemcellDetails() {
+  _getDetails "$1" stemcell
+}
 
-read version sha1 release_url < <(getReleaseDetails $VSPHERE_CPI_RELEASE_REPOSITORY)
-export VSPHERE_CPI_RELEASE_VERSION=$version
-export VSPHERE_CPI_SHA=$sha1
-export VSPHERE_CPI_URL=$release_url
+## Releases
 
-read version sha1 release_url < <(getReleaseDetails $OS_CONF_RELEASE_REPOSITORY)
-export OS_CONF_RELEASE_VERSION=$version
-export OS_CONF_RELEASE_SHA=$sha1
-export OS_CONF_RELEASE_URL=$release_url
+###
+# Grabs the bosh release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   BOSH_RELEASE_VERSION {string} The version metadata that will downloaded
+#   BOSH_RELEASE_SHA {string} The sha metadata to compare against the download
+#   BOSH_RELEASE_URL {string} The url metadata to download the product
+##
+function get_bosh() {
+  read version sha1 release_url < <(_getReleaseDetails bosh)
+  export BOSH_RELEASE_VERSION=$version
+  export BOSH_RELEASE_SHA=$sha1
+  export BOSH_RELEASE_URL=$release_url
+}
 
-read version sha1 release_url < <(getReleaseDetails $UAA_RELEASE_REPOSITORY)
-export UAA_RELEASE_VERSION=$version
-export UAA_RELEASE_SHA=$sha1
-export UAA_RELEASE_URL=$release_url
+###
+# Grabs the vsphere cpi release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   VSPHERE_CPI_RELEASE_VERSION {string} The version metadata that will downloaded
+#   VSPHERE_CPI_RELEASE_SHA {string} The sha metadata to compare against the download
+#   VSPHERE_CPI_RELEASE_URL {string} The url metadata to download the product
+##
+function get_vsphere_cpi() {
+  read version sha1 release_url < <(_getReleaseDetails vsphere_cpi)
+  export VSPHERE_CPI_RELEASE_VERSION=$version
+  export VSPHERE_CPI_SHA=$sha1
+  export VSPHERE_CPI_URL=$release_url
+}
 
-read version sha1 release_url < <(getReleaseDetails $CONCOURSE_RELEASE_REPOSITORY)
-export CONCOURSE_RELEASE_VERSION=$version
-export CONCOURSE_RELEASE_SHA=$sha1
-export CONCOURSE_RELEASE_URL=https://bosh.io/d/github.com/concourse/concourse?v=$CONCOURSE_RELEASE_VERSION
+###
+# Grabs the os conf release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   OS_CONF_RELEASE_VERSION {string} The version metadata that will downloaded
+#   OS_CONF_RELEASE_SHA {string} The sha metadata to compare against the download
+#   OS_CONF_RELEASE_URL {string} The url metadata to download the product
+##
+function get_os_conf() {
+  read version sha1 release_url < <(_getReleaseDetails os_conf)
+  export OS_CONF_RELEASE_VERSION=$version
+  export OS_CONF_RELEASE_SHA=$sha1
+  export OS_CONF_RELEASE_URL=$release_url
+}
 
-read version sha1 release_url < <(getReleaseDetails $GARDEN_RUNC_RELEASE_REPOSITORY)
-export GARDEN_RUNC_RELEASE_VERSION=1.12.1
-export GARDEN_RUNC_RELEASE_SHA=$sha1
-export GARDEN_RUNC_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=$GARDEN_RUNC_RELEASE_VERSION
+###
+# Grabs the uaa release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   UAA_RELEASE_VERSION {string} The version metadata that will downloaded
+#   UAA_RELEASE_SHA {string} The sha metadata to compare against the download
+#   UAA_RELEASE_URL {string} The url metadata to download the product
+##
+function get_uaa() {
+  read version sha1 release_url < <(_getReleaseDetails uaa)
+  export UAA_RELEASE_VERSION=$version
+  export UAA_RELEASE_SHA=$sha1
+  export UAA_RELEASE_URL=$release_url
+}
 
-read version sha1 release_url < <(getReleaseDetails $POSTGRES_RELEASE_REPOSITORY)
-export POSTGRES_RELEASE_VERSION=$version
-export POSTGRES_RELEASE_SHA=$sha1
-export POSTGRES_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=$POSTGRES_RELEASE_VERSION
+###
+# Grabs the concourse release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   CONCOURSE_RELEASE_VERSION {string} The version metadata that will downloaded
+#   CONCOURSE_RELEASE_SHA {string} The sha metadata to compare against the download
+#   CONCOURSE_RELEASE_URL {string} The url metadata to download the product
+##
+function get_concourse() {
+  read version sha1 release_url < <(_getReleaseDetails concourse)
+  export CONCOURSE_RELEASE_VERSION=$version
+  export CONCOURSE_RELEASE_SHA=$sha1
+  export CONCOURSE_RELEASE_URL=$release_url
+}
 
-read version sha1 release_url < <(getReleaseDetails $CREDHUB_RELEASE_REPOSITORY)
-export CREDHUB_RELEASE_VERSION=1.7.2
-export CREDHUB_RELEASE_URL=https://bosh.io/d/github.com/pivotal-cf/credhub-release?v=$CREDHUB_RELEASE_VERSION
+###
+# Grabs the graden runc release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   GARDEN_RUNC_RELEASE_VERSION {string} The version metadata that will downloaded
+#   GARDEN_RUNC_RELEASE_SHA {string} The sha metadata to compare against the download
+#   GARDEN_RUNC_RELEASE_URL {string} The url metadata to download the product
+##
+function get_garden_runc() {
+  read version sha1 release_url < <(_getReleaseDetails garden_runc)
+  export GARDEN_RUNC_RELEASE_VERSION=1.12.1
+  export GARDEN_RUNC_RELEASE_SHA=$sha1
+  export GARDEN_RUNC_RELEASE_URL=$release_url
+}
 
-read version sha1 release_url < <(getReleaseDetails $CONSUL_RELEASE_REPOSITORY)
-export CONSUL_RELEASE_VERSION=$version
-export CONSUL_RELEASE_SHA=$sha1
-export CONSUL_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease?v=$CONSUL_RELEASE_VERSION
+###
+# Grabs the postgres release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   POSTGRES_RELEASE_VERSION {string} The version metadata that will downloaded
+#   POSTGRES_RELEASE_SHA {string} The sha metadata to compare against the download
+#   POSTGRES_RELEASE_URL {string} The url metadata to download the product
+##
+function get_postgres() {
+  read version sha1 release_url < <(_getReleaseDetails postgres)
+  export POSTGRES_RELEASE_VERSION=$version
+  export POSTGRES_RELEASE_SHA=$sha1
+  export POSTGRES_RELEASE_URL=$release_url
+}
 
-read version sha1 release_url < <(getReleaseDetails $VAULT_RELEASE_REPOSITORY)
-export VAULT_RELEASE_VERSION=$version
-export VAULT_RELEASE_SHA=$sha1
-export VAULT_RELEASE_URL=https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease?v=$VAULT_RELEASE_VERSION
+###
+# Grabs the credhub release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   CREDHUB_RELEASE_VERSION {string} The version metadata that will downloaded
+#   CREDHUB_RELEASE_SHA {string} The sha metadata to compare against the download
+#   CREDHUB_RELEASE_URL {string} The url metadata to download the product
+##
+function get_credhub() {
+  read version sha1 release_url < <(_getReleaseDetails credhub)
+  export CREDHUB_RELEASE_VERSION=1.7.2
+  export CREDHUB_RELEASE_URL=$release_url
+}
 
-read version sha1 stemcell_url < <(getStemcellDetails $STEMCELL_NAME)
-export SC_VERSION=$version
-export STEMCELL_SHA=$sha1
-export STEMCELL_URL=https://bosh.io/d/stemcells/bosh-vsphere-esxi-ubuntu-trusty-go_agent?v=$SC_VERSION
+###
+# Grabs the consul release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   CONSUL_RELEASE_VERSION {string} The version metadata that will downloaded
+#   CONSUL_RELEASE_SHA {string} The sha metadata to compare against the download
+#   CONSUL_RELEASE_URL {string} The url metadata to download the product
+##
+function get_consul() {
+  read version sha1 release_url < <(_getReleaseDetails consul)
+  export CONSUL_RELEASE_VERSION=$version
+  export CONSUL_RELEASE_SHA=$sha1
+  export CONSUL_RELEASE_URL=$release_url
+}
+
+###
+# Grabs the vault release metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getReleaseDetails
+#
+# Exports:
+#   VAULT_RELEASE_VERSION {string} The version metadata that will downloaded
+#   VAULT_RELEASE_SHA {string} The sha metadata to compare against the download
+#   VAULT_RELEASE_URL {string} The url metadata to download the product
+##
+function get_vault() {
+  read version sha1 release_url < <(_getReleaseDetails vault)
+  export VAULT_RELEASE_VERSION=$version
+  export VAULT_RELEASE_SHA=$sha1
+  export VAULT_RELEASE_URL=$release_url
+}
+
+###
+# Grabs the ubuntu stemcell metadata and exports variables accordingly.  Note that any variables already set will simply regrab the value but their values will remain the same.
+#
+# See:
+#   _getStemcellDetails
+#
+# Exports:
+#   UBUNTU_STEMCELL_VERSION {string} The version metadata that will downloaded
+#   UBUNTU_STEMCELL_SHA {string} The sha metadata to compare against the download
+#   UBUNTU_STEMCELL_URL {string} The url metadata to download the product
+##
+function get_ubuntu() {
+  read version sha1 stemcell_url < <(_getStemcellDetails ubuntu)
+  export SC_VERSION=$version
+  export STEMCELL_SHA=$sha1
+  export STEMCELL_URL=$stemcell_url
+}
+
+## Main
+
+RELEASES="$@"
+if [ -z "$RELEASES" ]; then
+  RELEASES='bosh vsphere_cpi os_conf uaa concourse garden_runc postgres credhub vault ubuntu'
+fi
+
+for release in $RELEASES; do
+  fn="get_$release"
+  if declare -f -F $fn > /dev/null; then
+    _log "Getting release: $release"
+    $fn
+  else
+    _log "Unknown release: $release" >&2
+    exit 3
+  fi
+done
+
+#
