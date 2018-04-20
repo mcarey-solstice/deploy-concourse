@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -eo pipefail
+
+export VAULT_LOG="$OUTPUT_DIRECTORY/vault.log"
+export VAULT_TOKEN_FILE="$OUTPUT_DIRECTORY/token.json"
+
+export VAULT_TOKEN="$( grep 'Initial Root Token' "$VAULT_LOG" | awk '{print $4}' )"
+
+declare -a _VAULT_UNSEAL_KEYS=()
+while read -r _key; do
+  _VAULT_UNSEAL_KEYS+=("${_key/Unseal Key *: }")
+done <<< "$( grep '^Unseal Key' "$VAULT_LOG" )"
+
+export VAULT_UNSEAL_KEYS="${_VAULT_UNSEAL_KEYS[@]}"
+
+function get_client_token() {
+  cat "$VAULT_TOKEN_FILE" | $JQ_CMD -r .auth.client_token
+  return $?
+}
+
+# vault.helpers
