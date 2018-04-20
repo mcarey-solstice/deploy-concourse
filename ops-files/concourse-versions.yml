@@ -5,15 +5,21 @@
   value:
     name: concourse
     version: ((concourse_release_version))
+    url: ((concourse_release_url))
+    sha1: ((concourse_release_sha))
 
 - type: replace
   path: /releases/name=garden-runc?
   value:
     name: garden-runc
     version: ((garden_runc_release_version))
+    url: ((garden_runc_release_url))
+    sha1: ((garden_runc_release_sha))
 
 - type: replace
   path: /releases/name=postgres?
   value:
     name: postgres
     version: ((postgres_release_version))
+    url: ((postgres_release_url))
+    sha1: ((postgres_release_sha))

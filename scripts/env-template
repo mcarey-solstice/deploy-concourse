@@ -22,6 +22,8 @@ export GARDEN_RUNC_RELEASE_VERSION=1.12.1
 # export UBUNTU_STEMCELL_VERSION=
 ##
 
+export CONCOURSE_RELEASES_LATEST=true
+
 ###
 # Export a different location to store files.  Defaults to the parent directory of this script's directory.
 ##
@@ -29,6 +31,8 @@ export GARDEN_RUNC_RELEASE_VERSION=1.12.1
 ##
 
 export BOSH_DEPLOYMENT_REPOSITORY=https://github.com/cloudfoundry/bosh-deployment
+export CONCOURSE_DEPLOYMENT_REPOSITORY=https://github.com/concourse/concourse-deployment
+
 export BOSH_ALIAS=concourse-bosh
 
 export NETWORK_CIDR=172.16.0.0/23
@@ -74,11 +78,8 @@ export VAULT_PRIVATE_KEY_FILENAME=
 # (uncomment and fill in if required)
 #export VAULT_CACERT=
 
-export ROLE_NAME=cc-role
 export VAULT_POLICY_NAME=cc-policy
 export CONCOURSE_VAULT_MOUNT=/concourse
-
-export BACKEND_ROLE=
 
 export CONCOURSE_AZ_NAME=$AZ_NAME
 export CONCOURSE_NW_NAME=$NETWORK_NAME

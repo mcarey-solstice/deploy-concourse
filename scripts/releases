@@ -291,7 +291,7 @@ function get_concourse() {
 function get_garden_runc() {
   local _load="$( _getReleaseDetails garden_runc )"
   read version sha1 release_url < <(echo "$_load")
-  export GARDEN_RUNC_RELEASE_VERSION=1.12.1
+  export GARDEN_RUNC_RELEASE_VERSION=$version
   export GARDEN_RUNC_RELEASE_SHA=$sha1
   export GARDEN_RUNC_RELEASE_URL=$release_url
 }
@@ -329,7 +329,8 @@ function get_postgres() {
 function get_credhub() {
   local _load="$( _getReleaseDetails credhub )"
   read version sha1 release_url < <(echo "$_load")
-  export CREDHUB_RELEASE_VERSION=1.7.2
+  export CREDHUB_RELEASE_VERSION=$version
+  export CREDHUB_RELEASE_SHA=$sha1
   export CREDHUB_RELEASE_URL=$release_url
 }
 

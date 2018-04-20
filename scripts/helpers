@@ -50,7 +50,7 @@ function log() {
   declare _logfile="${LOGGER_FILE:-/dev/null}"
   declare _date_format="${LOGGER_DATE_FORMAT:-%Y-%m-%d %H:%M:%S %Z}"
 
-  echo "[$( date +"$_date_format" )][$_caller] $@" >&2 2> >( tee -a "$_logfile" )
+  echo -e "[\e[93m$( date +"$_date_format" )\e[39m][\e[32m$_caller\e[39m] $@" >&2 2> >( tee -a "$_logfile" )
 }
 
 
