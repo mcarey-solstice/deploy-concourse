@@ -53,6 +53,33 @@ function log() {
   echo "[$( date +"$_date_format" )][$_caller] $@" >&2 2> >( tee -a "$_logfile" )
 }
 
+
+function git_submodule() {
+  local _name="$1"
+  local _NAME="$( uppercase "${_name/-/_}" )"
+
+  local _repo_var="${_NAME}_REPOSITORY"
+  local _version_var="${_NAME}_VERSION"
+
+  if [ ! -d "$VENDOR_DIRECTORY/$_name" ]; then
+    git clone "${!_repo_var}" "$VENDOR_DIRECTORY/$_name" >&2
+  else
+    log "Updating $_name repository"
+    pushd "$VENDOR_DIRECTORY/$_name" >/dev/null
+      git fetch >&2
+
+      if [ -z "${!_version_var}" ]; then
+        eval "$_version_var"=master
+      fi
+
+      git checkout "${!_version_var}" >&2
+      git pull origin "${!_version_var}" >&2
+    popd >/dev/null
+  fi
+
+  echo "$VENDOR_DIRECTORY/$_name"
+}
+
 # Export this loaded variable to load only once
 declare -r HELPERS_LOADED=
 

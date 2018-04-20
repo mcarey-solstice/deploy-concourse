@@ -44,6 +44,9 @@ fi
 export OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
 mkdir -p "$OUTPUT_DIRECTORY"
 
+export VENDOR_DIRECTORY="${VENDOR_DIRECTORY:-$__BASEDIR__/vendor}"
+mkdir -p "$VENDOR_DIRECTORY"
+
 if [ "$( uname )" = "Darwin" ]; then
   DNS_SERVERS_LIST=( $( echo "$DNS_SERVERS" | $JQ_CMD -r '.[]' ) )
   networksetup -setdnsservers Wi-Fi $DNS_SERVERS_LIST

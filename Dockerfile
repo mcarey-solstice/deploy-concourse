@@ -8,6 +8,7 @@ RUN apt-get update
 RUN apt-get install -y \
   jq \
   man \
+  git \
   vim \
   curl \
   wget \

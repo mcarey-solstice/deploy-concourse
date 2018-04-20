@@ -1,7 +1,6 @@
 *.log
 *.json
-concourse-deployment/
-bosh-deployment/
+vendor/
 *.tgz
 .DS_Store
 .env*
