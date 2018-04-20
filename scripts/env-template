@@ -53,7 +53,7 @@ export CREDENTIAL_MANAGER=credhub # credhub|vault|leave blank
 export INSECURE_SKIP_VERIFY=true
 export CONCOURSE_PATH_PREFIX=/concourse
 
-export VAULT_ADDR=http://vault.example.io
+export VAULT_ADDR=http://127.0.0.1:8200
 export VAULT_INSTANCES=3
 export VAULT_AZ_NAME=$AZ_NAME
 export VAULT_NW_NAME=$NETWORK_NAME
