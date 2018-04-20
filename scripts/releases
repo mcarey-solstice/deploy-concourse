@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source "$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"/helpers
+
 ## Defaults
 
 export BOSH_API="https://bosh.io/api/v1"
@@ -23,37 +25,6 @@ export VAULT_RELEASE_REPOSITORY=cloudfoundry-community/vault-boshrelease
 export UBUNTU_STEMCELL_REPOSITORY=bosh-vsphere-esxi-ubuntu-trusty-go_agent
 
 ## Helpers
-
-###
-# Logs output for debugging purposes.
-#
-# Warning:
-#   Sends all output to stderr
-##
-function _log() {
-  echo "[DEBUG][releases] $@" >&2
-}
-
-###
-# Uppercases a string.  If the bash version is 4 or greater, the ${var^^} builtin will be used; otherwise, awk is used.
-#
-# Environment:
-#   BASH_VERSION {string} Provided from bash.
-#
-# Echos:
-#   The string in uppercase.
-#
-# Returns:
-#   0
-##
-function _to_upper() {
-  local _var="$1"
-  if [ "${BASH_VERSION:0:1}" = "4" ]; then
-    echo "${_var^^}"
-  else
-    echo "${_var}" | awk '{print toupper($0)}'
-  fi
-}
 
 ###
 # Checks for a default value.  If no default is available, empty string is echoed.
@@ -86,11 +57,11 @@ function _getDefault() {
   if [ "$_property" = "url" ]; then
     case "$_type" in
       release )
-        _var="$( _to_upper "${_product}_RELEASE_REPOSITORY" )"
+        _var="$( uppercase "${_product}_RELEASE_REPOSITORY" )"
         echo "${DEFAULT_RELEASES_BASE_URL}/${!_var}"
         ;;
       stemcell )
-        _var="$( _to_upper "${_product}_STEMCELL_REPOSITORY" )"
+        _var="$( uppercase "${_product}_STEMCELL_REPOSITORY" )"
         echo "${DEFAULT_STEMCELL_BASE_URL}/${!_var}"
         ;;
       * )
@@ -121,13 +92,13 @@ function _get() {
   local _type="$2"
   local _property="$3"
 
-  local _var=$( _to_upper "${_product}_${_type}_${_property}" )
+  local _var=$( uppercase "${_product}_${_type}_${_property}" )
   if [ -z "${!_var+x}" -a -n "${!_var}" ]; then
-    _log "Found a variable: $_var with value ${!_var}"
+    log "Found a variable: $_var with value ${!_var}"
     # We already have a configuration
     echo "${!_var}"
   else
-    _log "Using default for $_var"
+    log "Using default for $_var"
     # We will use the default
     _getDefault $@
   fi
@@ -154,10 +125,16 @@ function _getDetails() {
   local _product="$1"
   local _type="$2"
 
+  local _loaded="$( uppercase "${_product}_loaded" )"
+  if [ -n "${!_loaded+x}" ]; then
+    log "Already loaded $_product $_type"
+    return 0
+  fi
+
   local _url="$( _get "$_product" "$_type" url )"
   local _version="$( _get "$_product" "$_type" version )"
 
-  _log "Url: $_url"
+  log "Url: $_url"
 
   JSON=$(curl -s --fail "$_url?all=1")
   if [ -z "${_version}" ]; then
@@ -165,7 +142,7 @@ function _getDetails() {
   else
     PAYLOAD="$( echo "$JSON" | jq "select(.version == \"$_version\")" )"
   fi
-  # _log "Payload: $PAYLOAD"
+  # log "Payload: $PAYLOAD"
 
   VERSION=$(echo "$PAYLOAD" | jq -r '.version')
 
@@ -177,8 +154,10 @@ function _getDetails() {
   SHA1=$(echo "$PAYLOAD" | jq -r "$_prefix.sha1")
   RELEASE_URL=$(echo "$PAYLOAD" | jq -r "$_prefix.url")
 
-  _log "{ \"version\": \"$VERSION\", \"sha1\": \"$SHA1\", \"url\": \"$RELEASE_URL\" }"
+  log "{ \"version\": \"$VERSION\", \"sha1\": \"$SHA1\", \"url\": \"$RELEASE_URL\" }"
   echo "$VERSION" "$SHA1" "$RELEASE_URL"
+
+  declare -r "$_loaded"=
 }
 
 ###
@@ -215,7 +194,8 @@ function _getStemcellDetails() {
 #   BOSH_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_bosh() {
-  read version sha1 release_url < <(_getReleaseDetails bosh)
+  local _load="$( _getReleaseDetails bosh )"
+  read version sha1 release_url < <(echo "$_load")
   export BOSH_RELEASE_VERSION=$version
   export BOSH_RELEASE_SHA=$sha1
   export BOSH_RELEASE_URL=$release_url
@@ -233,7 +213,8 @@ function get_bosh() {
 #   VSPHERE_CPI_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_vsphere_cpi() {
-  read version sha1 release_url < <(_getReleaseDetails vsphere_cpi)
+  local _load="$( _getReleaseDetails vsphere_cpi )"
+  read version sha1 release_url < <(echo "$_load")
   export VSPHERE_CPI_RELEASE_VERSION=$version
   export VSPHERE_CPI_SHA=$sha1
   export VSPHERE_CPI_URL=$release_url
@@ -251,7 +232,8 @@ function get_vsphere_cpi() {
 #   OS_CONF_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_os_conf() {
-  read version sha1 release_url < <(_getReleaseDetails os_conf)
+  local _load="$( _getReleaseDetails os_conf )"
+  read version sha1 release_url < <(echo "$_load")
   export OS_CONF_RELEASE_VERSION=$version
   export OS_CONF_RELEASE_SHA=$sha1
   export OS_CONF_RELEASE_URL=$release_url
@@ -269,7 +251,8 @@ function get_os_conf() {
 #   UAA_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_uaa() {
-  read version sha1 release_url < <(_getReleaseDetails uaa)
+  local _load="$( _getReleaseDetails uaa )"
+  read version sha1 release_url < <(echo "$_load")
   export UAA_RELEASE_VERSION=$version
   export UAA_RELEASE_SHA=$sha1
   export UAA_RELEASE_URL=$release_url
@@ -287,7 +270,8 @@ function get_uaa() {
 #   CONCOURSE_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_concourse() {
-  read version sha1 release_url < <(_getReleaseDetails concourse)
+  local _load="$( _getReleaseDetails concourse )"
+  read version sha1 release_url < <(echo "$_load")
   export CONCOURSE_RELEASE_VERSION=$version
   export CONCOURSE_RELEASE_SHA=$sha1
   export CONCOURSE_RELEASE_URL=$release_url
@@ -305,7 +289,8 @@ function get_concourse() {
 #   GARDEN_RUNC_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_garden_runc() {
-  read version sha1 release_url < <(_getReleaseDetails garden_runc)
+  local _load="$( _getReleaseDetails garden_runc )"
+  read version sha1 release_url < <(echo "$_load")
   export GARDEN_RUNC_RELEASE_VERSION=1.12.1
   export GARDEN_RUNC_RELEASE_SHA=$sha1
   export GARDEN_RUNC_RELEASE_URL=$release_url
@@ -323,7 +308,8 @@ function get_garden_runc() {
 #   POSTGRES_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_postgres() {
-  read version sha1 release_url < <(_getReleaseDetails postgres)
+  local _load="$( _getReleaseDetails postgres )"
+  read version sha1 release_url < <(echo "$_load")
   export POSTGRES_RELEASE_VERSION=$version
   export POSTGRES_RELEASE_SHA=$sha1
   export POSTGRES_RELEASE_URL=$release_url
@@ -341,7 +327,8 @@ function get_postgres() {
 #   CREDHUB_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_credhub() {
-  read version sha1 release_url < <(_getReleaseDetails credhub)
+  local _load="$( _getReleaseDetails credhub )"
+  read version sha1 release_url < <(echo "$_load")
   export CREDHUB_RELEASE_VERSION=1.7.2
   export CREDHUB_RELEASE_URL=$release_url
 }
@@ -358,7 +345,8 @@ function get_credhub() {
 #   CONSUL_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_consul() {
-  read version sha1 release_url < <(_getReleaseDetails consul)
+  local _load="$( _getReleaseDetails consul )"
+  read version sha1 release_url < <(echo "$_load")
   export CONSUL_RELEASE_VERSION=$version
   export CONSUL_RELEASE_SHA=$sha1
   export CONSUL_RELEASE_URL=$release_url
@@ -376,7 +364,8 @@ function get_consul() {
 #   VAULT_RELEASE_URL {string} The url metadata to download the product
 ##
 function get_vault() {
-  read version sha1 release_url < <(_getReleaseDetails vault)
+  local _load="$( _getReleaseDetails vault )"
+  read version sha1 stemcell_url < <(echo "$_load")
   export VAULT_RELEASE_VERSION=$version
   export VAULT_RELEASE_SHA=$sha1
   export VAULT_RELEASE_URL=$release_url
@@ -394,10 +383,15 @@ function get_vault() {
 #   UBUNTU_STEMCELL_URL {string} The url metadata to download the product
 ##
 function get_ubuntu() {
-  read version sha1 stemcell_url < <(_getStemcellDetails ubuntu)
+  local _load="$( _getStemcellDetails ubuntu )"
+  read version sha1 stemcell_url < <(echo "$_load")
   export SC_VERSION=$version
   export STEMCELL_SHA=$sha1
   export STEMCELL_URL=$stemcell_url
+}
+
+function get_stemcell() {
+  get_ubuntu
 }
 
 ## Main
@@ -410,10 +404,10 @@ fi
 for release in $RELEASES; do
   fn="get_$release"
   if declare -f -F $fn > /dev/null; then
-    _log "Getting release: $release"
+    log "Getting release: $release"
     $fn
   else
-    _log "Unknown release: $release" >&2
+    log "Unknown release: $release" >&2
     exit 3
   fi
 done

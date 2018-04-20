@@ -22,6 +22,12 @@ export GARDEN_RUNC_RELEASE_VERSION=1.12.1
 # export UBUNTU_STEMCELL_VERSION=
 ##
 
+###
+# Export a different location to store files.  Defaults to the parent directory of this script's directory.
+##
+# export OUTPUT_DIRECTORY=
+##
+
 export BOSH_ALIAS=concourse-bosh
 
 export NETWORK_CIDR=172.16.0.0/23
