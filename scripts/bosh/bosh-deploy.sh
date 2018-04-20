@@ -33,7 +33,7 @@ $BOSH_CMD \
     -v internal_cidr="$NETWORK_CIDR" \
     -v internal_gw="$NETWORK_GATEWAY" \
     -v internal_ip="$BOSH_IP" \
-    -v dns_servers="$DNS_SERVERS" \
+    -v dns_servers="[$DNS_SERVERS]" \
     -v network_name="$VCENTER_NETWORK_NAME" \
     -v vcenter_dc="$VSPHERE_DATACENTER" \
     -v vcenter_ds="$VCENTER_STORAGE_NAME" \
