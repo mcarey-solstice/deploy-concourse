@@ -3,13 +3,11 @@
 declare -r __DIR__="$( cd "$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )" && pwd )"
 
 source "$__DIR__"/../load-env
-source "$__DIR__"/../releases vault
+source "$__DIR__"/../releases consul vault
 source "$__DIR__"/vault-helpers
 
-# Consul is currently the only supported backend
-"$__DIR__"/../consul/consul-deploy.sh
-
-# Upload the release
+# Upload the releases
+$BOSH_CMD -e $BOSH_ALIAS -n upload-release $CONSUL_RELEASE_URL
 $BOSH_CMD -e $BOSH_ALIAS -n upload-release $VAULT_RELEASE_URL
 
 # Vault certs
