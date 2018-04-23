@@ -23,10 +23,12 @@ if [ -n "${ENV_LOADED+x}" ]; then
   return 0
 fi
 
+log "Looking for environment script for $ENV"
+
 __DIR="$( dirname $( readlink -f "${BASH_SOURCE[0]}" ) )"
 declare -r __BASEDIR__="$( cd "$__DIR/.." && pwd )"
 
-ENV_DIRECTORY=${ENV_DIRECTORY:-$__DIR}
+ENV_DIRECTORY="${ENV_DIRECTORY:-$__DIR}"
 
 export BOSH_CMD=bosh
 export VAULT_CMD=vault
@@ -41,6 +43,7 @@ else
   source "$__DIR"/env-template
 fi
 
+log "Setting OUTPUT_DIRECTORY to $OUTPUT_DIRECTORY"
 OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
 mkdir -p "$OUTPUT_DIRECTORY"
 
