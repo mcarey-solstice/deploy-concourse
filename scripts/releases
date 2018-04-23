@@ -140,7 +140,7 @@ function _getDetails() {
   if [ -z "${_version}" ]; then
     PAYLOAD="$( echo "$JSON" | jq '.[0]' )"
   else
-    PAYLOAD="$( echo "$JSON" | jq "select(.version == \"$_version\")" )"
+    PAYLOAD="$( echo "$JSON" | jq ".[] | select(.version == \"$_version\")" )"
   fi
   # log "Payload: $PAYLOAD"
 
