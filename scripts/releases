@@ -93,7 +93,7 @@ function _get() {
   local _property="$3"
 
   local _var=$( uppercase "${_product}_${_type}_${_property}" )
-  if [ -z "${!_var+x}" -a -n "${!_var}" ]; then
+  if [ -n "${!_var+x}" -a -n "${!_var}" ]; then
     log "Found a variable: $_var with value ${!_var}"
     # We already have a configuration
     echo "${!_var}"
