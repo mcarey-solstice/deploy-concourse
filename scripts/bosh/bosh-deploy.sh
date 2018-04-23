@@ -18,13 +18,19 @@ if [ "$HTTP_PROXY_REQUIRED" = "true" ]; then
         -v no_proxy=$NO_PROXY "
 fi
 
+RESOURCE_POOL_OPS_FILE=" "
+RESOURCE_POOL_VARS=" "
+if [ -n "$VCENTER_RESOURCE_POOL" ]; then
+  RESOURCE_POOL_OPS_FILE=" -o \"$BOSH_DEPLOYMENT_DIRECTORY\"/vsphere/resource-pool.yml"
+  RESOURCE_POOL_VARS=" -v vcenter_rp=\"$VCENTER_RESOURCE_POOL\""
+fi
+
 log "Creating bosh environment"
 $BOSH_CMD \
   create-env "$BOSH_DEPLOYMENT_DIRECTORY"/bosh.yml \
     --state="$OUTPUT_DIRECTORY"/state.json \
     --vars-store="$OUTPUT_DIRECTORY"/creds.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/vsphere/cpi.yml \
-    -o "$BOSH_DEPLOYMENT_DIRECTORY"/vsphere/resource-pool.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/jumpbox-user.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/uaa.yml \
     -o "$__BASEDIR__"/ops-files/versions.yml \
@@ -45,7 +51,6 @@ $BOSH_CMD \
     -v vcenter_vms="$VCENTER_VMS_FOLDER_NAME" \
     -v vcenter_disks="$VCENTER_DISK_FOLDER_NAME" \
     -v vcenter_cluster="$VCENTER_CLUSTER_NAME" \
-    -v vcenter_rp="$VCENTER_RESOURCE_POOL" \
     -v bosh_release_url="$BOSH_RELEASE_URL" \
     -v bosh_release_sha="$BOSH_RELEASE_SHA" \
     -v vsphere_cpi_release_url="$VSPHERE_CPI_URL" \
@@ -57,6 +62,7 @@ $BOSH_CMD \
     -v uaa_release_url="$UAA_RELEASE_URL" \
     -v uaa_release_sha="$UAA_RELEASE_SHA" \
     --var-file trusted_certs="$TRUSTED_CERT_FILE" \
+    $RESOURCE_POOL_OPS_FILE $RESOURCE_POOL_VARS \
     $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
 
 "$__DIR__"/bosh-login.sh
