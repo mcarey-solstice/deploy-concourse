@@ -19,9 +19,10 @@ else
   log "Generating cert for Vault"
 fi
 
+log "Deploying Vault"
 $BOSH_CMD -n \
   -e $BOSH_ALIAS \
-  -d $VAULT_CMD \
+  -d vault \
   deploy $__BASEDIR__/vault/vault.yml \
     -v VAULT_AZ_NAME=$VAULT_AZ_NAME \
     -v VAULT_NW_NAME=$VAULT_NW_NAME \
@@ -50,11 +51,11 @@ fi
 log "Updating policy: $VAULT_POLICY_NAME"
 $VAULT_CMD policy write "$VAULT_POLICY_NAME" "$__BASEDIR__"/vault/vault-policy.hcl
 
-_MOUNT="${CONCOURSE_VAULT_MOUNT#/}"/
+_MOUNT="${CONCOURSE_PATH_PREFIX#/}"/
 if [ "$( $VAULT_CMD secrets list -format=json | $JQ_CMD -r "has(\"$_MOUNT\")" )" = "false" ]; then
-  log "Creating mount: $CONCOURSE_VAULT_MOUNT"
+  log "Creating mount: $CONCOURSE_PATH_PREFIX"
   # Create a mount for concourse
-  $VAULT_CMD secrets enable -path="$CONCOURSE_VAULT_MOUNT" -description="Secrets for use by concourse pipelines" generic
+  $VAULT_CMD secrets enable -path="$CONCOURSE_PATH_PREFIX" -description="Secrets for use by concourse pipelines" generic
 fi
 
 function _create_token() {

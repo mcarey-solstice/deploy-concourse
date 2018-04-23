@@ -100,7 +100,6 @@ export VAULT_PRIVATE_KEY_FILENAME=
 
 export VAULT_POLICY_NAME=cc-policy
 
-export CONCOURSE_VAULT_MOUNT=/concourse
 ##
 
 ###
