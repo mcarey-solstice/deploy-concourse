@@ -65,6 +65,7 @@ $BOSH_CMD \
     $RESOURCE_POOL_OPS_FILE $RESOURCE_POOL_VARS \
     $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
 
+log "Logging into bosh"
 "$__DIR__"/bosh-login.sh
 
 log "Updating the bosh cloud config"
