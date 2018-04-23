@@ -41,10 +41,10 @@ else
   source "$__DIR"/env-template
 fi
 
-export OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
+OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
 mkdir -p "$OUTPUT_DIRECTORY"
 
-export VENDOR_DIRECTORY="${VENDOR_DIRECTORY:-$__BASEDIR__/vendor}"
+VENDOR_DIRECTORY="${VENDOR_DIRECTORY:-$__BASEDIR__/vendor}"
 mkdir -p "$VENDOR_DIRECTORY"
 
 if [ "$( uname )" = "Darwin" ]; then
