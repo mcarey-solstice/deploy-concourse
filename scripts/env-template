@@ -3,7 +3,7 @@
 ###
 # Export the `ENV` environment variable.
 # Copy this file as $ENV-env.
-# When running scripts in this directory will load the $FOUNDATION-env instead of this file.
+# When running scripts in this directory will load the $ENV-env instead of this file.
 ##
 
 ###
@@ -22,7 +22,11 @@ export GARDEN_RUNC_RELEASE_VERSION=1.12.1
 # export UBUNTU_STEMCELL_VERSION=
 ##
 
+###
+# If set to true, concourse releases will be taken from the latest version from the latest `concourse-deployment/versions.yml` instead of setting the versions themselves.  Note that the latest version.yml keeps compatible versions together.  If setting each version through configurations, make sure they are compatible with each other.
+##
 export CONCOURSE_RELEASES_LATEST=true
+##
 
 ###
 # Export a different location to store files.  Defaults to the parent directory of this script's directory.
@@ -30,17 +34,35 @@ export CONCOURSE_RELEASES_LATEST=true
 # export OUTPUT_DIRECTORY=
 ##
 
+###
+# The repositories to pull code from.  These will be placed in the `VENDOR_DIRECTORY` and pulled each time they are needed.
+##
 export BOSH_DEPLOYMENT_REPOSITORY=https://github.com/cloudfoundry/bosh-deployment
 export CONCOURSE_DEPLOYMENT_REPOSITORY=https://github.com/concourse/concourse-deployment
+##
 
+# The alias to set for bosh commands `bosh -e $BOSH_ALIAS`.  This also determines the name of the directory to use within `OUTPUT_DIRECTORY`.
 export BOSH_ALIAS=concourse-bosh
 
+###
+# Network configurations
+##
 export NETWORK_CIDR=172.16.0.0/23
 export NETWORK_GATEWAY=172.16.0.1
 export BOSH_IP=172.16.1.30
 export DNS_SERVERS=172.16.1.3
-export VCENTER_NETWORK_NAME=
+
+export AZ_NAME= # Logical Name for AZ
+export NETWORK_NAME= # Logical Name for network
+
+export INSECURE_SKIP_VERIFY=true
+##
+
+###
+# VSphere configurations
+##
 export VSPHERE_DATACENTER=
+export VCENTER_NETWORK_NAME=
 export VCENTER_STORAGE_NAME=
 export VCENTER_IP=
 export VCENTER_USERNAME=
@@ -50,16 +72,12 @@ export VCENTER_VMS_FOLDER_NAME=cc_vms
 export VCENTER_DISK_FOLDER_NAME=cc_disks
 export VCENTER_CLUSTER_NAME=
 export VCENTER_RESOURCE_POOL=
-
-export AZ_NAME= # Logical Name for AZ
-export NETWORK_NAME= # Logical Name for network
-
 export VM_DISK_TYPE=
+##
 
-export CREDENTIAL_MANAGER=credhub # credhub|vault|leave blank
-export INSECURE_SKIP_VERIFY=true
-export CONCOURSE_PATH_PREFIX=/concourse
-
+###
+# Vault configurations
+##
 export VAULT_ADDR=http://127.0.0.1:8200
 export VAULT_INSTANCES=3
 export VAULT_AZ_NAME=$AZ_NAME
@@ -76,10 +94,20 @@ export VAULT_PRIVATE_KEY_FILENAME=
 
 # path to a PEM-encoded trusted cert chain for Vault CLI
 # (uncomment and fill in if required)
-#export VAULT_CACERT=
+# export VAULT_CACERT=
 
 export VAULT_POLICY_NAME=cc-policy
+
 export CONCOURSE_VAULT_MOUNT=/concourse
+##
+
+###
+# Concourse configurations
+##
+# The credentials manager for concourse
+export CREDENTIAL_MANAGER=credhub # credhub|vault|leave blank
+
+export CONCOURSE_PATH_PREFIX=/concourse
 
 export CONCOURSE_AZ_NAME=$AZ_NAME
 export CONCOURSE_NW_NAME=$NETWORK_NAME
@@ -102,8 +130,13 @@ export TLS_BIND_PORT=443
 
 export RESERVED_IPS="[\"172.16.0.0-172.16.1.30\"]"
 export CLOUD_CONFIG_STATIC_IPS=172.16.1.32-172.16.1.41 # Block all the static IP's used here in this deployment
+##
 
+###
+# Proxy configurations
+##
 export HTTP_PROXY_REQUIRED=false # true or false
 export HTTP_PROXY=
 export HTTPS_PROXY=
 export NO_PROXY_PATTERN='10.198.159.{0..127}'
+##
