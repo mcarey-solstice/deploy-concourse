@@ -28,7 +28,7 @@ log "Looking for environment script for $ENV"
 __DIR="$( dirname $( readlink -f "${BASH_SOURCE[0]}" ) )"
 declare -r __BASEDIR__="$( cd "$__DIR/.." && pwd )"
 
-ENV_DIRECTORY="${ENV_DIRECTORY:-$__DIR}"
+declare -r ENV_DIRECTORY="${ENV_DIRECTORY:-$__DIR}"
 
 export BOSH_CMD=bosh
 export VAULT_CMD=vault
@@ -43,11 +43,10 @@ else
   source "$__DIR"/env-template
 fi
 
-log "Setting OUTPUT_DIRECTORY to $OUTPUT_DIRECTORY"
-OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
+declare -r OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
 mkdir -p "$OUTPUT_DIRECTORY"
 
-VENDOR_DIRECTORY="${VENDOR_DIRECTORY:-$__BASEDIR__/vendor}"
+declare -r VENDOR_DIRECTORY="${VENDOR_DIRECTORY:-$__BASEDIR__/vendor}"
 mkdir -p "$VENDOR_DIRECTORY"
 
 if [ "$( uname )" = "Darwin" ]; then
