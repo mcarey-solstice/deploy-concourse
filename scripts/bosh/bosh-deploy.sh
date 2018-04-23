@@ -28,8 +28,8 @@ fi
 log "Creating bosh environment"
 $BOSH_CMD \
   create-env "$BOSH_DEPLOYMENT_DIRECTORY"/bosh.yml \
-    --state="$OUTPUT_DIRECTORY"/state.json \
-    --vars-store="$OUTPUT_DIRECTORY"/creds.yml \
+    --state="$ALIAS_DIRECTORY"/state.json \
+    --vars-store="$ALIAS_DIRECTORY"/creds.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/vsphere/cpi.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/jumpbox-user.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/uaa.yml \

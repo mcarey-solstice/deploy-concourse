@@ -43,8 +43,8 @@ else
   source "$__DIR"/env-template
 fi
 
-declare -r OUTPUT_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
-mkdir -p "$OUTPUT_DIRECTORY"
+declare -r ALIAS_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
+mkdir -p "$ALIAS_DIRECTORY"
 
 declare -r VENDOR_DIRECTORY="${VENDOR_DIRECTORY:-$__BASEDIR__/vendor}"
 mkdir -p "$VENDOR_DIRECTORY"

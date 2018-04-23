@@ -11,7 +11,7 @@ $BOSH_CMD -e $BOSH_ALIAS -n upload-release $CONSUL_RELEASE_URL
 $BOSH_CMD -e $BOSH_ALIAS -n upload-release $VAULT_RELEASE_URL
 
 # Vault certs
-VAULT_TLS_FLAGS="--vars-store $OUTPUT_DIRECTORY/vault-vars.yml"
+VAULT_TLS_FLAGS="--vars-store $ALIAS_DIRECTORY/vault-vars.yml"
 if [ -n "$VAULT_SERVER_CERT_FILENAME" ]; then
   VAULT_TLS_FLAGS="--var-file vault-tls.certificate=$VAULT_SERVER_CERT_FILENAME --var-file vault-tls.private_key=$VAULT_PRIVATE_KEY_FILENAME"
   log "Using provided Vault cert"

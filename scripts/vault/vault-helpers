@@ -2,8 +2,8 @@
 
 set -eo pipefail
 
-export VAULT_LOG="$OUTPUT_DIRECTORY/vault.log"
-export VAULT_TOKEN_FILE="$OUTPUT_DIRECTORY/token.json"
+export VAULT_LOG="$ALIAS_DIRECTORY/vault.log"
+export VAULT_TOKEN_FILE="$ALIAS_DIRECTORY/token.json"
 
 export VAULT_TOKEN="$( grep 'Initial Root Token' "$VAULT_LOG" | awk '{print $4}' )"
 

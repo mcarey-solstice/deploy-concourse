@@ -13,8 +13,8 @@ $BOSH_CMD -e "$BOSH_ALIAS" clean-up --all -n
 
 $BOSH_CMD \
   delete-env "$BOSH_DEPLOYMENT_DIRECTORY"/bosh.yml \
-    --state="$OUTPUT_DIRECTORY"/state.json \
-    --vars-store="$OUTPUT_DIRECTORY"/creds.yml \
+    --state="$ALIAS_DIRECTORY"/state.json \
+    --vars-store="$ALIAS_DIRECTORY"/creds.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/vsphere/cpi.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/vsphere/resource-pool.yml \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/jumpbox-user.yml \

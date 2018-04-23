@@ -13,7 +13,7 @@ fi
 
 "$__DIR__"/bosh/bosh-delete.sh
 
-rm -rf "$OUTPUT_DIRECTORY"
+rm -rf "$ALIAS_DIRECTORY"
 rm -rf "$VENDOR_DIRECTORY"
 
 

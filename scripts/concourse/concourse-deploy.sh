@@ -88,7 +88,7 @@ $BOSH_CMD -n \
     -o "$CONCOURSE_DEPLOYMENT_DIRECTORY"/cluster/operations/basic-auth.yml \
     -o "$CONCOURSE_DEPLOYMENT_DIRECTORY"/cluster/operations/tls.yml \
     $TLS_OPS_FILES $TLS_VARS \
-    --vars-store="$OUTPUT_DIRECTORY"/concourse-vars.yml \
+    --vars-store="$ALIAS_DIRECTORY"/concourse-vars.yml \
     -v atc_basic_auth.username="$CONCOURSE_ADMIN_USERNAME" \
     -v atc_basic_auth.password="$CONCOURSE_ADMIN_PASSWORD" \
     -v tls_bind_port="$TLS_BIND_PORT" \
