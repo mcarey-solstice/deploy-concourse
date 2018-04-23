@@ -1,7 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
-__DIR__=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
-__BASEDIR__=$(dirname $__DIR__)
+declare -r __DIR__="$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"
 
 source "$__DIR__"/../load-env
 
