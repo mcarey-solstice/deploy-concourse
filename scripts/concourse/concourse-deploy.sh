@@ -61,6 +61,14 @@ else
     -v postgres_sha1=$POSTGRES_RELEASE_SHA"
 fi
 
+TLS_OPS_FILES=" -o ops-files/add-tls-vars.yml"
+TLS_VARS=" "
+if [ -n "$CONCOURSE_TLS_CERT_FILE" -a -n "$CONCOURSE_TLS_KEY_FILE" ]; then
+  TLS_OPS_FILES=" -o ops-files/add-tls-cert-vars.yml"
+  TLS_VARS=" --var-file=tls_cert=$CONCOURSE_TLS_CERT_FILE \
+      --var-file=tls_key=$CONCOURSE_TLS_KEY_FILE"
+fi
+
 HTTP_PROXY_OPS_FILES=" "
 HTTP_PROXY_VARS=" "
 if [ "$HTTP_PROXY_REQUIRED" = "true" ]; then
@@ -79,7 +87,7 @@ $BOSH_CMD -n \
     -o "$CONCOURSE_DEPLOYMENT_DIRECTORY"/cluster/operations/scale.yml \
     -o "$CONCOURSE_DEPLOYMENT_DIRECTORY"/cluster/operations/basic-auth.yml \
     -o "$CONCOURSE_DEPLOYMENT_DIRECTORY"/cluster/operations/tls.yml \
-    -o "$__BASEDIR__"/ops-files/add-tls-vars.yml \
+    $TLS_OPS_FILES $TLS_VARS \
     --vars-store="$OUTPUT_DIRECTORY"/concourse-vars.yml \
     -v atc_basic_auth.username="$CONCOURSE_ADMIN_USERNAME" \
     -v atc_basic_auth.password="$CONCOURSE_ADMIN_PASSWORD" \
