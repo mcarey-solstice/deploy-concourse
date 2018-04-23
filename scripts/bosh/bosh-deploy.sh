@@ -29,6 +29,7 @@ $BOSH_CMD \
     -o "$BOSH_DEPLOYMENT_DIRECTORY"/uaa.yml \
     -o "$__BASEDIR__"/ops-files/versions.yml \
     -o "$__BASEDIR__"/ops-files/dns.yml \
+    -o "$__BASEDIR__"/ops-files/director-trusted-certs.yml \
     -v director_name="$BOSH_ALIAS" \
     -v internal_cidr="$NETWORK_CIDR" \
     -v internal_gw="$NETWORK_GATEWAY" \
@@ -55,6 +56,7 @@ $BOSH_CMD \
     -v os_conf_release_sha="$OS_CONF_RELEASE_SHA" \
     -v uaa_release_url="$UAA_RELEASE_URL" \
     -v uaa_release_sha="$UAA_RELEASE_SHA" \
+    --var-file trusted_certs="$TRUSTED_CERT_FILE" \
     $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
 
 "$__DIR__"/bosh-login.sh
