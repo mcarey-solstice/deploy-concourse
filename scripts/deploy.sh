@@ -2,8 +2,8 @@
 
 declare -r __DIR__="$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"
 
-source "$__DIR__"/../helpers
-source "$__DIR__"/../load-env
+source "$__DIR__"/helpers
+source "$__DIR__"/load-env
 
 "$__DIR__"/bosh/bosh-deploy.sh
 
