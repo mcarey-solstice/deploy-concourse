@@ -7,6 +7,8 @@ source "$__DIR__"/../releases bosh uaa stemcell vsphere_cpi os_conf
 
 BOSH_DEPLOYMENT_DIRECTORY="$VENDOR_DIRECTORY/bosh-deployment"
 
+# TODO - Check that all bosh deployments are deleted before allowing delete
+
 $BOSH_CMD -e "$BOSH_ALIAS" clean-up --all -n
 
 $BOSH_CMD \
