@@ -4,7 +4,7 @@ declare -r __DIR__="$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"
 
 source "$__DIR__"/../helpers
 source "$__DIR__"/../load-env
-source "$__DIR__"/../releases concourse stemcell garden_runc os_conf
+source "$__DIR__"/../releases concourse stemcell garden_runc os_conf postgres
 
 CONCOURSE_DEPLOYMENT_DIRECTORY="$( git_submodule concourse-deployment )"
 
@@ -22,8 +22,6 @@ CONCOURSE_DEPLOYMENT_ADDITIONAL_VARS=" "
 
 if [ "$CREDENTIAL_MANAGER" == "credhub" ]; then
   log "Credential manager selected is credhub"
-  "$__DIR__"/../credhub/credhub-deploy.sh
-
   CONCOURSE_DEPLOYMENT_OPS_FILES="-o $__BASEDIR__/credhub/add-credhub.yml \
         -o $__BASEDIR__/ops-files/credhub-tls-cert-verify.yml"
 
@@ -34,9 +32,7 @@ if [ "$CREDENTIAL_MANAGER" == "credhub" ]; then
 
 elif [ "$CREDENTIAL_MANAGER" = "vault" ]; then
   log "Credential manager selected is vault"
-  "$__DIR__"/../vault/vault-deploy.sh
-
-  CLIENT_TOKEN="( source "$__DIR__"/../vault/vault-helpers && get_client_token )"
+  CLIENT_TOKEN=$( source "$__DIR__"/../vault/vault-helpers && get_client_token )
 
   CONCOURSE_DEPLOYMENT_OPS_FILES="-o $__BASEDIR__/vault/add-vault.yml \
         -o $__BASEDIR__/ops-files/vault-tls-cert-verify.yml"
@@ -50,7 +46,7 @@ fi
 
 if [ "$CONCOURSE_RELEASES_LATEST" ]; then
   log "Using versions from concourse-deployment's versions.yml for concourse, garden runc, and postgres"
-  CONCOURSE_VERSIONS_TO_DEPLOY="-o $CONCOURSE_DEPLOYMENT_DIRECTORY/versions.yml"
+  CONCOURSE_VERSIONS_TO_DEPLOY="-v $CONCOURSE_DEPLOYMENT_DIRECTORY/versions.yml"
 else
   log "Using versions from environment for concourse, garden runc, and postgres"
   CONCOURSE_VERSIONS_TO_DEPLOY="-v concourse_version=$CONCOURSE_RELEASE_VERSION \
