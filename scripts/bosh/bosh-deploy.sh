@@ -68,6 +68,13 @@ $BOSH_CMD \
 log "Logging into bosh"
 "$__DIR__"/bosh-login.sh
 
+RESOURCE_POOL_OPS_FILE=" "
+RESOURCE_POOL_VARS=" "
+if [ -n "$VCENTER_RESOURCE_POOL" ]; then
+  RESOURCE_POOL_OPS_FILE=" -o $__BASE_DIR__/ops-files/add-vcenter-resource-pool.yml"
+  RESOURCE_POOL_VARS=" -v vcenter_rp=\"$VCENTER_RESOURCE_POOL\""
+fi
+
 log "Updating the bosh cloud config"
 $BOSH_CMD -n \
   -e "$BOSH_ALIAS" \
@@ -78,10 +85,10 @@ $BOSH_CMD -n \
     -v network_cidr="$NETWORK_CIDR" \
     -v network_name="$VCENTER_NETWORK_NAME" \
     -v network_gateway="$NETWORK_GATEWAY" \
-    -v dns_servers="$DNS_SERVERS" \
+    -v dns_servers="[$DNS_SERVERS]" \
     -v reserved_ips="$RESERVED_IPS" \
     -v static_ips="$CLOUD_CONFIG_STATIC_IPS" \
-    -v vcenter_rp="$VCENTER_RESOURCE_POOL" \
-    -v vm_disk_type="$VM_DISK_TYPE"
+    -v vm_disk_type="$VM_DISK_TYPE" \
+    $RESOURCE_POOL_OPS_FILE $RESOURCE_POOL_VARS
 
 # deploys bosh
