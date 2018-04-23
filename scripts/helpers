@@ -62,6 +62,7 @@ function git_submodule() {
   local _version_var="${_NAME}_VERSION"
 
   if [ ! -d "$VENDOR_DIRECTORY/$_name" ]; then
+    log "Cloning ${!_repo_var} repository to $VENDOR_DIRECTORY/$_name"
     git clone "${!_repo_var}" "$VENDOR_DIRECTORY/$_name" >&2
   else
     log "Updating $_name repository"
