@@ -66,17 +66,18 @@ function git_submodule() {
     git clone "${!_repo_var}" "$VENDOR_DIRECTORY/$_name" >&2
   else
     log "Updating $_name repository"
-    pushd "$VENDOR_DIRECTORY/$_name" >/dev/null
-      git fetch >&2
-
-      if [ -z "${!_version_var}" ]; then
-        eval "$_version_var"=master
-      fi
-
-      git checkout "${!_version_var}" >&2
-      git pull origin "${!_version_var}" >&2
-    popd >/dev/null
+    ( cd $VENDOR_DIRECTORY/$_name && git fetch >&2 )
   fi
+
+  pushd "$VENDOR_DIRECTORY/$_name" >/dev/null
+    if [ -z "${!_version_var}" ]; then
+      eval "$_version_var"=master
+    fi
+
+    log "Checking out ${!_version_var} for $_name repository"
+    git checkout "${!_version_var}" >&2
+    git pull origin "${!_version_var}" >&2
+  popd >/dev/null
 
   echo "$VENDOR_DIRECTORY/$_name"
 }
