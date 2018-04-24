@@ -35,7 +35,7 @@ $BOSH_CMD -n \
     $VAULT_TLS_FLAGS
 
 # Configure
-_HEALTH=$( curl --fail -m 10 -s $VAULT_ADDR/v1/sys/health )
+_HEALTH=$( curl -m 10 -s $VAULT_ADDR/v1/sys/health )
 _INITIALIZED="$( echo "$_HEALTH" | $JQ_CMD '.initialized' )"
 if [ "$_INITIALIZED" = "false" ]; then
   log "Initalizing Vault"
