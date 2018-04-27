@@ -1,0 +1,23 @@
+###
+# Docker configurations for testing
+##
+
+version: '3'
+
+services:
+  server:
+    build: .
+    volumes:
+      - ./:/srv
+      - ./.docker/logs:/var/log/supervisord
+    working_dir: /srv
+    ports:
+      - "8200:8200"
+      - "8500:8500"
+    expose:
+      - 8200
+      - 8500
+  # server
+# services
+
+# test.docker-compose

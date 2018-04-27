@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -eo pipefail
+
+source "$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"/helpers
+
+###
+# Description:
+#   Loads the environment based on the `FOUNDATION` environment variable;
+#     otherwise, loads the env file
+#
+# Usage:
+#   source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load-env.sh
+##
+
+if [ -n "${ENV_DISABLED+x}" ]; then
+  log "Environment loading has been disabled"
+  return 0
+fi
+
+if [ -n "${ENV_LOADED+x}" ]; then
+  log "Environment has already been loaded"
+  return 0
+fi
+
+log "Looking for environment script for $ENV"
+
+__DIR="$( dirname $( readlink -f "${BASH_SOURCE[0]}" ) )"
+declare -r __BASEDIR__="$( cd "$__DIR/.." && pwd )"
+
+declare -r ENV_DIRECTORY="${ENV_DIRECTORY:-$__DIR}"
+
+export BOSH_CMD=bosh
+export VAULT_CMD=vault
+export JQ_CMD=jq
+export CREDHUB_CMD=credhub
+
+if [ -n "$ENV" ]; then
+  log "sourcing $ENV_DIRECTORY/$ENV-env...."
+  source "$ENV_DIRECTORY"/$ENV-env
+else
+  log "sourcing $__DIR/env-template...."
+  source "$__DIR"/env-template
+fi
+
+declare -r ALIAS_DIRECTORY="${OUTPUT_DIRECTORY:-$__BASEDIR__}/$BOSH_ALIAS"
+mkdir -p "$ALIAS_DIRECTORY"
+
+declare -r VENDOR_DIRECTORY="${VENDOR_DIRECTORY:-$__BASEDIR__/vendor}"
+mkdir -p "$VENDOR_DIRECTORY"
+
+if [ "$( uname )" = "Darwin" ]; then
+  DNS_SERVERS_LIST=( $( echo "$DNS_SERVERS" | $JQ_CMD -r '.[]' ) )
+  networksetup -setdnsservers Wi-Fi $DNS_SERVERS_LIST
+fi
+
+export http_proxy=$HTTP_PROXY
+export https_proxy=$HTTPS_PROXY
+
+if [ "$HTTP_PROXY_REQUIRED" = "true" ]; then
+  printf -v NO_PROXY '%s,' $( eval echo $NO_PROXY_PATTERN )
+  export NO_PROXY
+  export no_proxy=$NO_PROXY
+fi
+
+declare -r ENV_LOADED=

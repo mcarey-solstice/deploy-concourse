@@ -35,3 +35,11 @@ Caution:
 -	Do not delete the vault.log and create_token_response.json generated under `$BOSH-ALIAS` folder
 -	Loosing the above will make vault and/or concourse unusable and you have to redeploy concourse
 -	Supports single DNS Server
+
+Mirroring the respoitory:
+-------------------------
+
+Out of the box, the scripts will look inside the `scripts` directory for the env files and `$BOSH-ALIAS` directory will store the creds and output files for an environment.  One can move where these files are stored and therefore keep the logic separate from the storage files thus allowing the logic up-to-date and the storage to your backups or a separate repository.
+
+- Set the `ENV_DIRECTORY` environment variable globally to change where the env scripts are loaded from.
+- Set the `OUTPUT_DIRECTORY` environment variable globally to change where the `$BOSH-ALIAS` directories are stored.

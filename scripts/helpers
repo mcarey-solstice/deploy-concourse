@@ -1,0 +1,88 @@
+#!/bin/bash
+
+###
+# Description:
+#   Loads the environment based on the `FOUNDATION` environment variable;
+#     otherwise, loads the env file
+#
+# Usage:
+#   source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/helpers.sh
+##
+
+if [ -n "${HELPERS_LOADED+x}" ]; then
+  log "Helpers were already loaded"
+  return 0
+fi
+
+###
+# Uppercases a string.  If the bash version is 4 or greater, the ${var^^} builtin will be used; otherwise, awk is used.
+#
+# Environment:
+#   BASH_VERSION {string} Provided from bash.
+#
+# Echos:
+#   The string in uppercase.
+#
+# Returns:
+#   0
+##
+function uppercase() {
+  local _var="$1"
+  if [ "${BASH_VERSION:0:1}" = "4" ]; then
+    echo "${_var^^}"
+  else
+    echo "${_var}" | awk '{print toupper($0)}'
+  fi
+}
+
+###
+# Prints log messages to stdout and a log file.
+#
+# Environment:
+#   LOGGER_FILE {file} The file to send output to as well.  Defaults to '/dev/null'.
+#   LOGGER_DATE_FORMAT {string} The date format to use for timestamps.  Defaults to '%Y-%m-%d %H:%M:%S %Z'.
+#
+# Returns:
+#   0
+##
+function log() {
+  declare _caller="$( basename "${BASH_SOURCE[1]}" )"
+  declare _logfile="${LOGGER_FILE:-/dev/null}"
+  declare _date_format="${LOGGER_DATE_FORMAT:-%Y-%m-%d %H:%M:%S %Z}"
+
+  echo -e "[\e[93m$( date +"$_date_format" )\e[39m][\e[32m$_caller\e[39m] $@" >&2 2> >( tee -a "$_logfile" )
+}
+
+
+function git_submodule() {
+  local _name="$1"
+  local _NAME="$( uppercase "${_name/-/_}" )"
+
+  local _repo_var="${_NAME}_REPOSITORY"
+  local _version_var="${_NAME}_VERSION"
+
+  if [ ! -d "$VENDOR_DIRECTORY/$_name" ]; then
+    log "Cloning ${!_repo_var} repository to $VENDOR_DIRECTORY/$_name"
+    git clone "${!_repo_var}" "$VENDOR_DIRECTORY/$_name" >&2
+  else
+    log "Updating $_name repository"
+    ( cd $VENDOR_DIRECTORY/$_name && git fetch >&2 )
+  fi
+
+  pushd "$VENDOR_DIRECTORY/$_name" >/dev/null
+    if [ -z "${!_version_var}" ]; then
+      eval "$_version_var"=master
+    fi
+
+    log "Checking out ${!_version_var} for $_name repository"
+    git checkout "${!_version_var}" >&2
+    git pull origin "${!_version_var}" >&2
+  popd >/dev/null
+
+  echo "$VENDOR_DIRECTORY/$_name"
+}
+
+# Export this loaded variable to load only once
+declare -r HELPERS_LOADED=
+
+# helpers
