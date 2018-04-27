@@ -64,12 +64,12 @@ function _create_token() {
 
 # Create application policy
 _status=0
-_CLIENT_TOKEN="$( get_client_token )" || _status=$?
+_CLIENT_TOKEN="$( get_client_token )" || _status=$? && :
 if [ $_status -ne 0 ]; then
   _create_token
 else
   # Check the token is legit
-  $VAULT_CMD token lookup "$_CLIENT_TOKEN" || _status=$?
+  $VAULT_CMD token lookup "$_CLIENT_TOKEN" || _status=$? && :
   if [ $_status -ne 0 ]; then
     # Bad token
     _create_token

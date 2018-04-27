@@ -46,7 +46,7 @@ fi
 
 if [ "$CONCOURSE_RELEASES_LATEST" ]; then
   log "Using versions from concourse-deployment's versions.yml for concourse, garden runc, and postgres"
-  CONCOURSE_VERSIONS_TO_DEPLOY="-v $CONCOURSE_DEPLOYMENT_DIRECTORY/versions.yml"
+  CONCOURSE_VERSIONS_TO_DEPLOY="--vars-file=$CONCOURSE_DEPLOYMENT_DIRECTORY/versions.yml"
 else
   log "Using versions from environment for concourse, garden runc, and postgres"
   CONCOURSE_VERSIONS_TO_DEPLOY="-v concourse_version=$CONCOURSE_RELEASE_VERSION \
