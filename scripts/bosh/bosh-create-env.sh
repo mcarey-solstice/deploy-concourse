@@ -6,7 +6,6 @@ source "$__DIR__"/../helpers
 source "$__DIR__"/../load-env
 source "$__DIR__"/../releases bosh uaa stemcell vsphere_cpi os_conf
 
-
 BOSH_DEPLOYMENT_DIRECTORY="$( git_submodule bosh-deployment )"
 
 HTTP_PROXY_OPS_FILES=" "
@@ -23,6 +22,17 @@ RESOURCE_POOL_VARS=" "
 if [ -n "$VCENTER_RESOURCE_POOL" ]; then
   RESOURCE_POOL_OPS_FILE=" -o \"$BOSH_DEPLOYMENT_DIRECTORY\"/vsphere/resource-pool.yml"
   RESOURCE_POOL_VARS=" -v vcenter_rp=\"$VCENTER_RESOURCE_POOL\""
+fi
+
+CONFIG_SERVER_OPS_FILE=" "
+CONFIG_SERVER_VARS=" "
+if [ -n "$CONFIG_SERVER" ]; then
+  if [ "$CONFIG_SERVER" = "credhub" ]; then
+    CONFIG_SERVER_OPS_FILE=" -o \"$BOSH_DEPLOYMENT_DIRECTORY\"/credhub.yml"
+    CONFIG_SERVER_VARS=" "
+  else
+    log "Unknown config server configuration"
+  fi
 fi
 
 log "Creating bosh environment"
@@ -63,6 +73,7 @@ $BOSH_CMD \
     -v uaa_release_sha="$UAA_RELEASE_SHA" \
     --var-file trusted_certs="$TRUSTED_CERT_FILE" \
     $RESOURCE_POOL_OPS_FILE $RESOURCE_POOL_VARS \
-    $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS
+    $HTTP_PROXY_OPS_FILES $HTTP_PROXY_VARS \
+    $CONFIG_SERVER_OPS_FILE $CONFIG_SERVER_VARS
 
 # creates bosh env
