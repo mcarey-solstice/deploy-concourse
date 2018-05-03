@@ -37,7 +37,13 @@ export CONCOURSE_RELEASES_LATEST=true
 ###
 # Sets a config server for bosh to generate secrets and store internally
 ##
-# CONFIG_SERVER=credhub
+# export CONFIG_SERVER=credhub
+##
+
+###
+# Allows a different cloud config to be used
+##
+# export CUSTOM_CLOUD_CONFIG=
 ##
 
 ###

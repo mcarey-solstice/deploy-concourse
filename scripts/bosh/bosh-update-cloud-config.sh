@@ -12,10 +12,15 @@ if [ -n "$VCENTER_RESOURCE_POOL" ]; then
   RESOURCE_POOL_VARS=" -v vcenter_rp=\"$VCENTER_RESOURCE_POOL\""
 fi
 
+CLOUD_CONFIG="$__BASEDIR__"/cloud-configs/cloud-config.yml
+if [ -z "$CUSTOM_CLOUD_CONFIG" ]; then
+    CLOUD_CONFIG="$CUSTOM_CLOUD_CONFIG"
+fi
+
 log "Updating the bosh cloud config"
 $BOSH_CMD -n \
   -e "$BOSH_ALIAS" \
-  update-cloud-config "$__BASEDIR__"/cloud-configs/cloud-config.yml \
+  update-cloud-config "$CLOUD_CONFIG" \
     -v az_name="$CONCOURSE_AZ_NAME" \
     -v nw_name="$CONCOURSE_NW_NAME" \
     -v vcenter_cluster="$VCENTER_CLUSTER_NAME" \
