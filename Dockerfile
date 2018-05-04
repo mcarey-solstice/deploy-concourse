@@ -4,18 +4,19 @@
 
 FROM ubuntu:latest
 
-RUN apt-get update
-RUN apt-get install -y \
-  jq \
-  man \
-  git \
-  vim \
-  curl \
-  wget \
-  unzip \
-  direnv \
-  supervisor
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+  && apt-get install -y \
+    jq \
+    man \
+    git \
+    vim \
+    curl \
+    wget \
+    nmap \
+    unzip \
+    direnv \
+    supervisor \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN curl \
   -o /usr/local/bin/bosh \

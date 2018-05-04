@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -exo pipefail
 
 source "$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"/helpers
 
@@ -58,9 +58,39 @@ export http_proxy=$HTTP_PROXY
 export https_proxy=$HTTPS_PROXY
 
 if [ "$HTTP_PROXY_REQUIRED" = "true" ]; then
-  printf -v NO_PROXY '%s,' $( eval echo $NO_PROXY_PATTERN )
-  export NO_PROXY
-  export no_proxy=$NO_PROXY
+  # Backwards compatability
+  if [ -n "$NO_PROXY_PATTERN" ]; then
+    log "The NO_PROXY_PATTERN variable is to be deprecated.  Please use the NO_PROXY variable as an nmap range"
+    printf -v _no_proxy '%s,' $( eval echo $NO_PROXY_PATTERN )
+  fi
+
+  # Split the string by commas
+  NO_PROXY=${NO_PROXY//,/ }
+
+  for i in $NO_PROXY; do
+    j="$i"
+    _j="$( nmap -sL -n $NO_PROXY $_NO_PROXY )"
+    if echo "$_j" | grep -vq 'Failed to resolve'; then
+      log "Expanding IP Range: $i"
+      j="$( echo "$_j" | grep 'Nmap scan report for' | cut -f 5 -d ' ' | tr '\n' ',' )"
+    fi
+
+    _no_proxy="$_no_proxy,$j"
+  done
+
+  # ltrim ,
+  if [ "${_no_proxy:0:1}" = "," ]; then
+    _no_proxy="${_no_proxy:1}"
+  fi
+
+  # rtrim ,
+  len=${#_no_proxy}
+  if [ "${_no_proxy:$((len-1))}" = "," ]; then
+    _no_proxy="${_no_proxy::$((len-1))}"
+  fi
+
+  export NO_PROXY=$_no_proxy
+  export no_proxy=$_no_proxy
 fi
 
 declare -r ENV_LOADED=
