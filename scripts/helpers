@@ -53,7 +53,16 @@ function log() {
   echo -e "[\e[93m$( date +"$_date_format" )\e[39m][\e[32m$_caller\e[39m] $@" >&2 2> >( tee -a "$_logfile" )
 }
 
-
+###
+# Clones a repository and checks out onto a particular branch if specified.
+#
+# Environment:
+#   {name^^}_REPOSITORY {uri} The repository to clone
+#   {name^^}_VERSION {uri} The version/branch to checkout onto
+#
+# Parameters:
+#   1 (name) {string} The prefix for variable names
+##
 function git_submodule() {
   local _name="$1"
   local _NAME="$( uppercase "${_name/-/_}" )"
