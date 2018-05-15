@@ -69,10 +69,12 @@ if [ "$HTTP_PROXY_REQUIRED" = "true" ]; then
 
   for i in $NO_PROXY; do
     j="$i"
-    _j="$( nmap -sL -n $NO_PROXY $_NO_PROXY )"
-    if echo "$_j" | grep -vq 'Failed to resolve'; then
+    _j="$( nmap -sL -n $i 2>&1 )"
+    if [ -n "${_j##*Failed to resolve*}" ]; then
       log "Expanding IP Range: $i"
       j="$( echo "$_j" | grep 'Nmap scan report for' | cut -f 5 -d ' ' | tr '\n' ',' )"
+    else
+      log "Skipping expansion of $i"
     fi
 
     _no_proxy="$_no_proxy,$j"
