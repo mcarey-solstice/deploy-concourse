@@ -15,6 +15,10 @@ done <<< "$( grep '^Unseal Key' "$VAULT_LOG" )"
 export VAULT_UNSEAL_KEYS="${_VAULT_UNSEAL_KEYS[@]}"
 
 function get_client_token() {
+  if [ -f "$VAULT_TOKEN_FILE" ]; then
+    return 1
+  fi
+
   cat "$VAULT_TOKEN_FILE" | $JQ_CMD -r .auth.client_token
   return $?
 }

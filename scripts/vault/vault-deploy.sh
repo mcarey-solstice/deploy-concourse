@@ -59,6 +59,7 @@ if [ "$( $VAULT_CMD secrets list -format=json | $JQ_CMD -r "has(\"$_MOUNT\")" )"
 fi
 
 function _create_token() {
+  echo "Creating token"
   $VAULT_CMD token create --policy="$VAULT_POLICY_NAME" -period="87600h" -format=json > "$VAULT_TOKEN_FILE"
 }
 
