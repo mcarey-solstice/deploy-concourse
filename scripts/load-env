@@ -30,10 +30,10 @@ declare -r __BASEDIR__="$( cd "$__DIR/.." && pwd )"
 
 declare -r ENV_DIRECTORY="${ENV_DIRECTORY:-$__DIR}"
 
-export BOSH_CMD=bosh
-export VAULT_CMD=vault
-export JQ_CMD=jq
-export CREDHUB_CMD=credhub
+export BOSH_CMD="${BOSH_CMD:-bosh}"
+export VAULT_CMD="${VAULT_CMD:-vault}"
+export JQ_CMD="${JQ_CMD:-jq}"
+export CREDHUB_CMD="${CREDHUB_CMD:-credhub}"
 
 if [ -n "$ENV" ]; then
   log "sourcing $ENV_DIRECTORY/$ENV-env...."
