@@ -28,7 +28,7 @@ CONFIG_SERVER_OPS_FILE=" "
 CONFIG_SERVER_VARS=" "
 if [ -n "$CONFIG_SERVER" ]; then
   if [ "$CONFIG_SERVER" = "credhub" ]; then
-    CONFIG_SERVER_OPS_FILE=" -o \"$BOSH_DEPLOYMENT_DIRECTORY\"/credhub.yml"
+    CONFIG_SERVER_OPS_FILE=" -o $BOSH_DEPLOYMENT_DIRECTORY/credhub.yml"
     CONFIG_SERVER_VARS=" "
   else
     log "Unknown config server configuration"
