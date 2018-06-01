@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -exo pipefail
+set -eo pipefail
 
 source "$( dirname "$( readlink -f "${BASH_SOURCE[0]}" )" )"/helpers
 
@@ -30,10 +30,10 @@ declare -r __BASEDIR__="$( cd "$__DIR/.." && pwd )"
 
 declare -r ENV_DIRECTORY="${ENV_DIRECTORY:-$__DIR}"
 
-export BOSH_CMD=bosh
-export VAULT_CMD=vault
-export JQ_CMD=jq
-export CREDHUB_CMD=credhub
+export BOSH_CMD="${BOSH_CMD:-bosh}"
+export VAULT_CMD="${VAULT_CMD:-vault}"
+export JQ_CMD="${JQ_CMD:-jq}"
+export CREDHUB_CMD="${CREDHUB_CMD:-credhub}"
 
 if [ -n "$ENV" ]; then
   log "sourcing $ENV_DIRECTORY/$ENV-env...."
@@ -69,10 +69,12 @@ if [ "$HTTP_PROXY_REQUIRED" = "true" ]; then
 
   for i in $NO_PROXY; do
     j="$i"
-    _j="$( nmap -sL -n $NO_PROXY $_NO_PROXY )"
-    if echo "$_j" | grep -vq 'Failed to resolve'; then
+    _j="$( nmap -sL -n $i 2>&1 )"
+    if [ -n "${_j##*Failed to resolve*}" ]; then
       log "Expanding IP Range: $i"
       j="$( echo "$_j" | grep 'Nmap scan report for' | cut -f 5 -d ' ' | tr '\n' ',' )"
+    else
+      log "Skipping expansion of $i"
     fi
 
     _no_proxy="$_no_proxy,$j"
