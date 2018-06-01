@@ -48,6 +48,51 @@ if [ "$_SEALED" = "true" ]; then
   "$__DIR__"/vault-unseal.sh
 fi
 
+if [ "$VAULT_LDAP_ENABLED" = "true" ]; then
+  if [ -n "$VAULT_LDAP_INSECURE_TLS" ]; then
+    LDAP_PARAMS+=" insecure_tls=$VAULT_LDAP_INSECURE_TLS"
+  fi
+  if [ -n "$VAULT_LDAP_BINDDN" ]; then
+    LDAP_PARAMS+=" binddn=$VAULT_LDAP_BINDDN"
+  fi
+  if [ -n "$VAULT_LDAP_USERDN" ]; then
+    LDAP_PARAMS+=" userdn=$VAULT_LDAP_USERDN"
+  fi
+  if [ -n "$VAULT_LDAP_BINDPASS" ]; then
+    LDAP_PARAMS+=" bindpass=$VAULT_LDAP_BINDPASS"
+  fi
+  if [ -n "$VAULT_LDAP_USERATTR" ]; then
+    LDAP_PARAMS+=" userattr=$VAULT_LDAP_USERATTR"
+  fi
+  if [ -n "$VAULT_LDAP_GROUPATTR" ]; then
+    LDAP_PARAMS+=" groupattr=$VAULT_LDAP_GROUPATTR"
+  fi
+  if [ -n "$VAULT_LDAP_STARTTLS" ]; then
+    LDAP_PARAMS+=" starttls=$VAULT_LDAP_STARTTLS"
+  fi
+  if [ -n "$VAULT_LDAP_CERTIFICATE" ]; then
+    LDAP_PARAMS+=" certificate=$VAULT_LDAP_CERTIFICATE"
+  fi
+  if [ -n "$VAULT_LDAP_DISCOVERDN" ]; then
+    LDAP_PARAMS+=" discoverdn=$VAULT_LDAP_DISCOVERDN"
+  fi
+  if [ -n "$VAULT_LDAP_DENY_NULL_BIND" ]; then
+    LDAP_PARAMS+=" deny_null_bind=$VAULT_LDAP_DENY_NULL_BIND"
+  fi
+  if [ -n "$VAULT_LDAP_UPNDOMAIN" ]; then
+    LDAP_PARAMS+=" upndomain=$VAULT_LDAP_UPNDOMAIN"
+  fi
+  if [ -n "$VAULT_LDAP_GROUPFILTER" ]; then
+    LDAP_PARAMS+=" groupfilter=$VAULT_LDAP_GROUPFILTER"
+  fi
+
+  $VAAULT_CMD auth enable ldap
+  $VAULT_CMD write auth/ldap/config \
+    url="$VAULT_LDAP_URL" \
+    groupdn="$VAULT_LDAP_GROUPDN" \
+    $LDAP_PARAMS
+fi
+
 log "Updating policy: $VAULT_POLICY_NAME"
 $VAULT_CMD policy write "$VAULT_POLICY_NAME" "$__BASEDIR__"/vault/vault-policy.hcl
 
@@ -75,6 +120,15 @@ else
     # Bad token
     _create_token
   fi
+fi
+
+if [ -n "$VAULT_POLICY_DIRECTORY" ]; then
+  log "Looking for policies in $VAULT_POLICY_DIRECTORY"
+  for i in $VAULT_POLICY_DIRECTORY/*.hcl; do
+    POLICY_NAME="$( basename $i .hcl )"
+    log "Adding policy: $POLICY_NAME"
+    $VAULT_CMD policy write "$POLICY_NAME" "$i"
+  done
 fi
 
 # deploys vault

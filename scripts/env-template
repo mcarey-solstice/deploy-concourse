@@ -156,3 +156,32 @@ export HTTP_PROXY=
 export HTTPS_PROXY=
 export NO_PROXY_PATTERN='10.198.159.{0..127}'
 ##
+
+###
+# LDAP for Vault
+##
+#
+export VAULT_LDAP_ENABLED=false
+# export VAULT_LDAP_URL=
+# export VAULT_LDAP_GROUPDN=
+# export VAULT_LDAP_INSECURE_TLS=
+# export VAULT_LDAP_BINDDN=
+# export VAULT_LDAP_USERDN=
+# export VAULT_LDAP_BINDPASS=
+# export VAULT_LDAP_USERATTR=
+# export VAULT_LDAP_GROUPATTR=
+# export VAULT_LDAP_STARTTLS=
+# export VAULT_LDAP_CERTIFICATE=
+# export VAULT_LDAP_DISCOVERDN=
+# export VAULT_LDAP_DENY_NULL_BIND=
+# export VAULT_LDAP_UPNDOMAIN=
+# export VAULT_LDAP_GROUPFILTER=
+#
+
+###
+# Adding a directory of vault policies by $VAULT_POLICY_DIRECTORY/${policy_name}.hcl
+##
+#
+export VAULT_POLICY_DIRECTORY=
+#
+
